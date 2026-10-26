@@ -1,2 +1,7 @@
 import { RoleDashboard } from '@/components/role-dashboard'
-export default function GuardianPage() { return <RoleDashboard role="guardian" /> }
+import { requireDashboardAccess } from '@/lib/supabase/auth'
+
+export default async function GuardianPage() {
+    await requireDashboardAccess('guardian')
+    return <RoleDashboard role="guardian" />
+}

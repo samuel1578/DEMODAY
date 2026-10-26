@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Menu, Moon, Sun, X } from 'lucide-react'
 import { PageMotion } from '@/components/reveal'
+import { AuthNavControls } from '@/components/auth/auth-nav-controls'
+import { LegacyProfileCredentialCleanup } from '@/components/auth/legacy-profile-credential-cleanup'
 import { humanIcon, logo, proofIcon, siteNav, sportsIcon, upgradeIcon } from '@/data/site'
 
 const menuMarqueeItems = [
@@ -61,6 +63,7 @@ export function SiteShell({ children, current }: { children: React.ReactNode; cu
 
   return (
     <main data-theme={dark ? 'dark' : 'light'} className={dark ? 'min-h-screen bg-[#101612] text-white' : 'min-h-screen bg-[#f6f6ef] text-[#172219]'}>
+      <LegacyProfileCredentialCleanup />
       <header className={`sticky top-0 z-40 border-b backdrop-blur-xl ${headerTheme} ${open ? `max-md:fixed max-md:inset-0 max-md:flex max-md:h-[100dvh] max-md:flex-col max-md:overflow-y-auto ${dark ? 'max-md:bg-[#101612]' : 'max-md:bg-[#f6f6ef]'}` : ''}`}>
         <div className={`mx-auto flex w-full max-w-7xl flex-col md:flex-row md:items-center md:justify-between ${open ? 'max-md:flex-1' : ''}`}>
           <div className={`flex shrink-0 items-center justify-between px-5 py-4 lg:px-8 ${open ? `max-md:border-b ${dark ? 'max-md:border-white/10' : 'max-md:border-[#172219]/10'}` : ''}`}>
@@ -95,8 +98,7 @@ export function SiteShell({ children, current }: { children: React.ReactNode; cu
                 {dark ? <Sun /> : <Moon />}
                 <span className="md:hidden">{dark ? 'Light mode' : 'Dark mode'}</span>
               </button>
-              <Link href="/sign-in" onClick={() => setOpen(false)} className={`mobile-menu-action rounded-md border px-4 py-2.5 text-sm font-extrabold transition ${dark ? 'border-white/25 text-white hover:border-[#F4D03F] hover:text-[#F4D03F]' : 'border-[#172219]/20 text-[#172219] hover:border-[#1e5128] hover:text-[#1e5128]'}`}>Sign in</Link>
-              <Link href="/sign-up" onClick={() => setOpen(false)} className="mobile-menu-action rounded-md bg-[#F4D03F] px-4 py-2.5 text-sm font-extrabold text-[#172219]">Sign up</Link>
+              <AuthNavControls dark={dark} />
             </div>
           </nav>
         </div>

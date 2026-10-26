@@ -8,11 +8,19 @@ __v0_jsx-dev-runtime.ts
 .vercel/
 
 # Environment variables
-.env*.local
+.env
+.env.*
+.env.example
+
 
 # Common ignores
 node_modules
 .next/
+supabase/.temp/
+supabase/.branches/
+supabase/migrations/
 .DS_Store
 AGENTS.md
 *.tsbuildinfo
+SUPABASE-CLOUDFLARE-IMPLEMENTATION.md
+IMPLEMENTATION-SPRINT-LOG.MD

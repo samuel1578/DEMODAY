@@ -235,19 +235,31 @@ export function validateStep(step: StepDef, values: Values): Record<string, stri
 const STORAGE_PREFIX = 'demoday.profile.'
 const PROFILES_STORAGE_KEY = 'demoday.profiles'
 
+function readStorageJson<T>(key: string): T | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(key)
+    if (!raw) return null
+    return JSON.parse(raw) as T
+  } catch {
+    return null
+  }
+}
+
 export function loadProfiles(): ProfileRecord[] {
   if (typeof window === 'undefined') return []
-  const savedProfiles = window.localStorage.getItem(PROFILES_STORAGE_KEY)
-  const profiles = savedProfiles ? JSON.parse(savedProfiles) as ProfileRecord[] : []
-  const migrated = [...profiles]
+
+  const savedProfiles = readStorageJson<unknown>(PROFILES_STORAGE_KEY)
+  const parsedProfiles = Array.isArray(savedProfiles) ? savedProfiles.filter((profile): profile is ProfileRecord => !!profile && typeof profile === 'object' && 'id' in profile && 'role' in profile) : []
+  const migrated = [...parsedProfiles]
   const knownIds = new Set(migrated.map(profile => profile.id))
 
   for (const role of ['player', 'scout', 'guardian'] as const) {
-    const raw = window.localStorage.getItem(STORAGE_PREFIX + role)
-    if (!raw) continue
-    const profile = JSON.parse(raw) as ProfileRecord
-    if (profile?.id && !knownIds.has(profile.id)) {
-      migrated.push(profile)
+    const profile = readStorageJson<Partial<ProfileRecord>>(STORAGE_PREFIX + role)
+    if (!profile || !profile.id || !profile.role || typeof profile.role !== 'string') continue
+    if (profile.role !== role) continue
+    if (!knownIds.has(profile.id)) {
+      migrated.push(profile as ProfileRecord)
       knownIds.add(profile.id)
     }
   }
@@ -263,10 +275,9 @@ export function loadProfile(role: RoleId): ProfileRecord | null {
   try {
     const profiles = loadProfiles().filter(profile => profile.role === role)
     if (profiles.length) return profiles[profiles.length - 1]
-    const raw = window.localStorage.getItem(STORAGE_PREFIX + role)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as ProfileRecord
-    return parsed?.id ? parsed : null
+    const raw = readStorageJson<Partial<ProfileRecord>>(STORAGE_PREFIX + role)
+    if (!raw || !raw.id || raw.role !== role) return null
+    return raw as ProfileRecord
   } catch {
     return null
   }
@@ -289,8 +300,8 @@ export function saveProfile(record: ProfileRecord): void {
 export function clearProfile(role: RoleId): void {
   if (typeof window === 'undefined') return
   try {
-    const current = window.localStorage.getItem(STORAGE_PREFIX + role)
-    const currentId = current ? (JSON.parse(current) as ProfileRecord).id : null
+    const current = readStorageJson<Partial<ProfileRecord>>(STORAGE_PREFIX + role)
+    const currentId = current?.id ?? null
     window.localStorage.removeItem(STORAGE_PREFIX + role)
     if (currentId) {
       const profiles = loadProfiles().filter(profile => profile.id !== currentId)

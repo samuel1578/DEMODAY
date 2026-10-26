@@ -1,2 +1,7 @@
 import { RoleDashboard } from '@/components/role-dashboard'
-export default function ScoutPage() { return <RoleDashboard role="scout" /> }
+import { requireDashboardAccess } from '@/lib/supabase/auth'
+
+export default async function ScoutPage() {
+    await requireDashboardAccess('scout')
+    return <RoleDashboard role="scout" />
+}
