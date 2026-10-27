@@ -1,7 +1,9 @@
-import { RoleDashboard } from '@/components/role-dashboard'
+import { PlayerDashboard } from '@/components/dashboards/player-dashboard'
 import { requireDashboardAccess } from '@/lib/supabase/auth'
+import { loadPlayerDashboard } from '@/lib/supabase/dashboard-data'
 
 export default async function PlayerPage() {
-    await requireDashboardAccess('player')
-    return <RoleDashboard role="player" />
+    const user = await requireDashboardAccess('player')
+    const data = await loadPlayerDashboard(user)
+    return <PlayerDashboard data={data} />
 }

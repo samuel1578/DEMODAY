@@ -11,6 +11,7 @@
     "build": "next build",
     "start": "next start",
     "test:onboarding": "node --test tests/onboarding-validation.test.mjs",
+    "test:dashboard": "node --test tests/dashboard.test.mjs",
     "supabase:check": "node scripts/check-supabase-env.mjs"
   },
   "dependencies": {

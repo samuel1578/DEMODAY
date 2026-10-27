@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { CalendarDays, ChartNoAxesColumn, ClipboardList, Plus, Search, Trash2, Users } from 'lucide-react'
 import { SiteShell } from '@/components/site-shell'
@@ -236,7 +237,10 @@ export function AdminDashboard() {
             <h1 className="display-title mt-3">Run the network.</h1>
             <p className="mt-4 max-w-2xl text-foreground/60">Manage events, review role profiles, and understand who the network is reaching.</p>
           </div>
-          <a href="/events" className="w-fit rounded-md bg-[#F4D03F] px-5 py-3 font-bold text-[#172219]">View public calendar</a>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/admin/reviews" className="w-fit rounded-md bg-[#1e5128] px-5 py-3 font-bold text-white">Profile review &amp; vetting</Link>
+            <a href="/events" className="w-fit rounded-md bg-[#F4D03F] px-5 py-3 font-bold text-[#172219]">View public calendar</a>
+          </div>
         </header>
 
         <div className="mt-6 rounded-lg border border-[#E67E22]/30 bg-[#E67E22]/10 p-4 text-sm leading-6">

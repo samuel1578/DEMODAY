@@ -19,7 +19,9 @@ import type {
     PublishedEvent,
     ProfileStatus,
     ScoutDiscoverablePlayer,
+    ScoutInterestRecord,
     ScoutProfileRecord,
+    ScoutVettingRecord,
 } from './contracts'
 
 function failOnError(error: { message: string } | null, operation: string): void {
@@ -127,6 +129,17 @@ export async function createDemoDayDataContract(): Promise<DemoDayServerDataCont
             return data as ScoutProfileRecord | null
         },
 
+        async getScoutInterests() {
+            const { data, error } = await supabase
+                .from('scout_interests')
+                .select('user_id,interest_type,interest_value')
+                .eq('user_id', user.id)
+                .order('interest_type', { ascending: true })
+                .order('interest_value', { ascending: true })
+            failOnError(error, 'Load scout interests')
+            return (data ?? []) as ScoutInterestRecord[]
+        },
+
         async getGuardianProfile() {
             const { data, error } = await supabase
                 .from('guardian_profiles')
@@ -216,6 +229,26 @@ export async function createDemoDayDataContract(): Promise<DemoDayServerDataCont
                 .limit(safeLimit)
             failOnError(error, 'Load audit history')
             return (data ?? []) as AuditLogEntry[]
+        },
+
+        async getReviewableProfiles(limit = 200) {
+            const safeLimit = Number.isInteger(limit) ? Math.min(Math.max(limit, 1), 500) : 200
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('user_id,role,status,first_name,last_name,created_at,updated_at')
+                .order('created_at', { ascending: false })
+                .limit(safeLimit)
+            failOnError(error, 'Load reviewable profiles')
+            return (data ?? []) as AccountProfile[]
+        },
+
+        async getReviewableScoutProfiles() {
+            const { data, error } = await supabase
+                .from('scout_profiles')
+                .select('user_id,vetting_status')
+                .order('created_at', { ascending: false })
+            failOnError(error, 'Load reviewable scout profiles')
+            return (data ?? []) as ScoutVettingRecord[]
         },
 
         async createGuardianLink(playerUserId) {

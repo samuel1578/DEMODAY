@@ -81,6 +81,18 @@ export interface ScoutDiscoverablePlayer {
     achievements: string | null
 }
 
+export interface ScoutInterestRecord {
+    user_id: string
+    interest_type: 'sport' | 'position' | 'age_band' | 'region'
+    interest_value: string
+}
+
+/** Independent vetting decision for a scout profile; never self-writable. */
+export interface ScoutVettingRecord {
+    user_id: string
+    vetting_status: ProfileStatus
+}
+
 export interface GuardianPlayerLink {
     id: string
     guardian_user_id: string
@@ -180,6 +192,12 @@ export interface AuditLogEntry {
     created_at: string
 }
 
+/** Shared result shape for the server-backed admin review actions. */
+export type AdminReviewActionState = {
+    status: 'idle' | 'error' | 'success'
+    message?: string
+}
+
 export interface DemoDayServerDataContract {
     getAccountProfile(): Promise<AccountProfile | null>
     getPlayerProfile(): Promise<PlayerProfileBundle | null>
@@ -187,6 +205,7 @@ export interface DemoDayServerDataContract {
     getLinkedPlayerProfile(playerUserId: string): Promise<PlayerProfileBundle | null>
     getLinkedAthleteConsentHistory(playerUserId: string): Promise<ConsentRecord[]>
     getScoutProfile(): Promise<ScoutProfileRecord | null>
+    getScoutInterests(): Promise<ScoutInterestRecord[]>
     getGuardianProfile(): Promise<GuardianProfileRecord | null>
     getGuardianPlayerLinks(): Promise<GuardianPlayerLink[]>
     getMyConsentHistory(): Promise<ConsentRecord[]>
@@ -196,6 +215,8 @@ export interface DemoDayServerDataContract {
     updateEvent(eventId: string, input: Partial<EventMutationInput>): Promise<EventRecord>
     deleteEvent(eventId: string): Promise<void>
     getAdminAuditLog(limit?: number): Promise<AuditLogEntry[]>
+    getReviewableProfiles(limit?: number): Promise<AccountProfile[]>
+    getReviewableScoutProfiles(): Promise<ScoutVettingRecord[]>
     createGuardianLink(playerUserId: string): Promise<GuardianPlayerLink>
     updateGuardianLink(linkId: string, status: Extract<GuardianLinkStatus, 'pending' | 'approved' | 'rejected' | 'revoked'>): Promise<GuardianPlayerLink>
     recordConsent(input: {
