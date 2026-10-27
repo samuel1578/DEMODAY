@@ -7,6 +7,8 @@ import { MotionMedia, Reveal, SignalCard, Ticker } from '@/components/reveal'
 import { SiteShell } from '@/components/site-shell'
 import { humanIcon, logo, pexelsImages, proofIcon, sportsIcon, upgradeIcon } from '@/data/site'
 
+export const revalidate = 300
+
 export default function Home() {
   return (
     <SiteShell current="/">

@@ -97,3 +97,16 @@ Validation was local only: `pnpm exec tsc --noEmit --incremental false`, `pnpm t
 - The base64/browser storage photo path has been removed. Enabling uploads requires the Cloudflare values documented in [`CLOUDFLARE-IMAGES-SETUP.md`](../CLOUDFLARE-IMAGES-SETUP.md); until they are set, photo fields show a configuration notice and the route answers `503`.
 
 Validation: `pnpm exec tsc --noEmit --incremental false`, `pnpm test:media`, `pnpm test:dashboard`, `pnpm test:onboarding`, and `pnpm build`, plus a live end-to-end run against the applied database and R2 buckets: browser-shaped upload to R2, `save_owner_media` save/replace, private-bucket 403 without a signature, signed GET success, retire, and object delete. The owner-scoped RPC rejects cross-user writes, malformed object keys, and role-inappropriate media types as designed.
+
+## Sprint 11 events, live
+
+`supabase/migrations/20261027170000_sprint11_event_images.sql` adds `events.image_object_key` (public R2 cover images) and a partial unique index enforcing a single homepage spotlight event. Apply it through Dashboard → SQL Editor. No new RPCs: event CRUD stays on the Sprint 4 admin RLS policies, and status changes are audited by the existing events audit trigger.
+
+`supabase/seeds/events-2026-10-27.sql` seeds the original demo events as real `published` rows (fixed UUIDs, idempotent upserts; requires the sprint11 column). The cover image for the spotlight event was uploaded to the public R2 bucket at `events/e7e60000-0000-4000-8000-000000000001.jpg`.
+
+- The public calendar (`/events`) and the homepage spotlight card read published events server-side through `lib/supabase/events-data.ts`; drafts never leave RLS.
+- `/admin/events` is the admin manager (create, edit, status changes, spotlight, delete). It writes through the existing policies; deletes best-effort remove the R2 cover object.
+- Event cover images upload straight to the public R2 bucket: `POST /api/media/upload-url` with `{ "kind": "event", "contentType", "byteSize" }`, admin-only, same presigned-PUT pattern as profile photos.
+- The legacy browser-localStorage event editor was removed from the admin dashboard; it now points at the real manager.
+
+Validation: `pnpm exec tsc --noEmit --incremental false`, `pnpm test:media`, `pnpm test:dashboard`, `pnpm test:onboarding`, and `pnpm build`. Live DB verification of the seeded rows and the admin manager flow is pending the owner applying the sprint11 migration and seed through the Dashboard.

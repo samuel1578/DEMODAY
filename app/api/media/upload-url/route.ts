@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createDirectUpload, isR2Configured } from '@/lib/cloudflare/images'
-import { mediaVisibilityFor, parseUploadRequest } from '@/lib/media'
+import { createDirectUpload, createEventImageUpload, isR2Configured } from '@/lib/cloudflare/images'
+import { imageContentTypes, maxImageBytes, mediaVisibilityFor, parseUploadRequest } from '@/lib/media'
 import { ownerIsMinor } from '@/lib/supabase/media-data'
 import { createClient } from '@/lib/supabase/server'
 
@@ -40,6 +40,35 @@ export async function POST(request: Request) {
         body = await request.json()
     } catch {
         body = null
+    }
+
+    if (body && typeof body === 'object' && 'kind' in body && (body as { kind?: unknown }).kind === 'event') {
+        if (profile.role !== 'admin') {
+            return json({ error: 'Only administrators can upload event images.' }, 403)
+        }
+        const contentType = (body as { contentType?: unknown }).contentType
+        const byteSize = (body as { byteSize?: unknown }).byteSize
+        if (typeof contentType !== 'string' || !(imageContentTypes as readonly string[]).includes(contentType)) {
+            return json({ error: 'Only JPEG, PNG, and WebP images are supported.' }, 400)
+        }
+        if (!Number.isInteger(byteSize) || (byteSize as number) <= 0 || (byteSize as number) > maxImageBytes) {
+            return json({ error: 'That image size is not supported.' }, 400)
+        }
+        try {
+            const upload = await createEventImageUpload({
+                contentType: contentType as (typeof imageContentTypes)[number],
+                byteSize: byteSize as number,
+            })
+            return json({
+                imageId: upload.imageId,
+                uploadUrl: upload.uploadUrl,
+                visibility: 'public',
+                requiresSignedUrls: false,
+            }, 200)
+        } catch {
+            console.error('Failed to issue R2 event image upload URL.')
+            return json({ error: 'The media service could not issue an upload URL. Try again.' }, 502)
+        }
     }
 
     const parsed = parseUploadRequest(body, profile.role as string)

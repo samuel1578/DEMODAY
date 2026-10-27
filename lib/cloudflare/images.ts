@@ -130,6 +130,37 @@ export async function createDirectUpload(input: {
     return { imageId: objectKey, uploadUrl }
 }
 
+/** Issue a 30-minute presigned PUT URL for a public event cover image. */
+export async function createEventImageUpload(input: {
+  contentType: ImageContentType
+  byteSize: number
+}): Promise<DirectUploadResult> {
+  const env = requireEnv()
+  const objectKey = `events/${crypto.randomUUID()}.${extensionFor(input.contentType)}`
+  const uploadUrl = await getSignedUrl(
+    getClient(env),
+    new PutObjectCommand({
+      Bucket: env.bucketName,
+      Key: objectKey,
+      ContentType: input.contentType,
+      ContentLength: input.byteSize,
+    }),
+    {
+      expiresIn: mediaUploadTtlSeconds,
+      signableHeaders: new Set(['content-type']),
+    },
+  )
+  return { imageId: objectKey, uploadUrl }
+}
+
+/** Public media origin for client-side previews of event cover images. */
+export function publicMediaOrigin(): string | null {
+  const env = getR2Env()
+  if (!env) return null
+  const domain = requirePublicDomain(env.publicDomain)
+  return domain ? domain.origin : null
+}
+
 export interface R2ObjectDetails {
     contentType: string | null
     byteSize: number | null

@@ -1,18 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { CalendarDays, ChartNoAxesColumn, ClipboardList, Plus, Search, Trash2, Users } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { CalendarDays, ChartNoAxesColumn, ClipboardList, Search, Users } from 'lucide-react'
 import { SiteShell } from '@/components/site-shell'
 import { roleFlows } from '@/data/onboarding'
 import {
   loadAdminNotes,
-  loadDemoEvents,
   roleLabel,
   saveAdminNote,
-  saveDemoEvents,
   updateProfileStatus,
-  type DemoEvent,
 } from '@/lib/admin-data'
 import {
   displayName,
@@ -25,15 +22,6 @@ import {
 
 type DashboardTab = 'overview' | 'events' | 'people' | 'analytics'
 type RoleFilter = 'all' | RoleId
-
-const initialEvent: Omit<DemoEvent, 'id' | 'createdAt' | 'spotlight'> = {
-  title: '',
-  description: '',
-  category: 'Scout day',
-  date: '',
-  time: '09:00',
-  location: '',
-}
 
 function fieldFor(role: RoleId, id: string): FieldDef | undefined {
   return roleFlows[role].steps.flatMap(step => step.fields).find(field => field.id === id)
@@ -87,38 +75,14 @@ function Breakdown({ title, rows }: { title: string; rows: [string, number][] })
   )
 }
 
-function TextField({ label, value, onChange, type = 'text', required = true }: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-  type?: string
-  required?: boolean
-}) {
-  return (
-    <label className="block text-xs font-bold uppercase tracking-wider">
-      {label}
-      <input
-        required={required}
-        type={type}
-        value={value}
-        onChange={event => onChange(event.target.value)}
-        className="mt-2 w-full rounded-md border border-foreground/15 bg-background px-3 py-2.5 text-sm font-normal normal-case tracking-normal outline-none focus:border-[#1e5128]"
-      />
-    </label>
-  )
-}
-
 export function AdminDashboard() {
   const [tab, setTab] = useState<DashboardTab>('overview')
   const [profiles, setProfiles] = useState<ProfileRecord[]>([])
-  const [events, setEvents] = useState<DemoEvent[]>([])
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [selectedId, setSelectedId] = useState('')
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
   const [query, setQuery] = useState('')
   const [noteDraft, setNoteDraft] = useState('')
-  const [eventDraft, setEventDraft] = useState(initialEvent)
-  const [editingEventId, setEditingEventId] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -126,7 +90,6 @@ export function AdminDashboard() {
     try {
       const currentProfiles = loadProfiles()
       setProfiles(currentProfiles)
-      setEvents(loadDemoEvents())
       setNotes(loadAdminNotes())
       setSelectedId(currentProfiles[0]?.id ?? '')
     } catch (loadError) {
@@ -147,55 +110,6 @@ export function AdminDashboard() {
   useEffect(() => {
     setNoteDraft(selectedProfile ? notes[selectedProfile.id] ?? '' : '')
   }, [selectedProfile, notes])
-
-  function persistEvents(nextEvents: DemoEvent[]) {
-    try {
-      saveDemoEvents(nextEvents)
-      setEvents(nextEvents)
-      setError('')
-      setNotice('Event changes saved in this browser.')
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Could not save events.')
-    }
-  }
-
-  function submitEvent(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const editing = events.find(item => item.id === editingEventId)
-    const item: DemoEvent = {
-      ...eventDraft,
-      imageUrl: editing?.imageUrl,
-      id: editing?.id ?? `event-${Date.now()}`,
-      createdAt: editing?.createdAt ?? new Date().toISOString(),
-      spotlight: editing?.spotlight ?? events.length === 0,
-    }
-    const nextEvents = editing
-      ? events.map(existing => existing.id === item.id ? item : existing)
-      : [...events, item]
-    persistEvents(nextEvents)
-    setEventDraft(initialEvent)
-    setEditingEventId('')
-  }
-
-  function editEvent(event: DemoEvent) {
-    const { title, description, category, date, time, location } = event
-    setEventDraft({ title, description, category, date, time, location })
-    setEditingEventId(event.id)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  function setSpotlight(eventId: string) {
-    persistEvents(events.map(event => ({ ...event, spotlight: event.id === eventId })))
-  }
-
-  function removeEvent(eventId: string) {
-    if (!window.confirm('Delete this event? This cannot be undone.')) return
-    let next = events.filter(event => event.id !== eventId)
-    if (!next.some(event => event.spotlight) && next.length) {
-      next = next.map((event, index) => index === 0 ? { ...event, spotlight: true } : event)
-    }
-    persistEvents(next)
-  }
 
   function saveNote() {
     if (!selectedProfile) return
@@ -220,7 +134,6 @@ export function AdminDashboard() {
     }
   }
 
-  const spotlight = events.find(event => event.spotlight)
   const tabs: { id: DashboardTab; label: string; icon: typeof CalendarDays }[] = [
     { id: 'overview', label: 'Overview', icon: ChartNoAxesColumn },
     { id: 'events', label: 'Events', icon: CalendarDays },
@@ -271,10 +184,10 @@ export function AdminDashboard() {
             </div>
             <section className="mt-5 rounded-xl border border-foreground/10 bg-card p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
-                <div><p className="eyebrow">Homepage spotlight</p><h2 className="mt-2 text-2xl font-black uppercase">{spotlight?.title ?? 'No spotlight event selected'}</h2></div>
-                <button onClick={() => setTab('events')} className="rounded-md border border-foreground/15 px-4 py-2 text-sm font-bold">Manage events</button>
+                <div><p className="eyebrow">Homepage spotlight</p><h2 className="mt-2 text-2xl font-black uppercase">Managed in the events manager</h2></div>
+                <Link href="/admin/events" className="rounded-md border border-foreground/15 px-4 py-2 text-sm font-bold">Manage events</Link>
               </div>
-              {spotlight && <p className="mt-3 text-sm text-foreground/60">{formatDate(spotlight.date)} · {spotlight.time} · {spotlight.location}</p>}
+              <p className="mt-3 text-sm text-foreground/60">Published events and the homepage spotlight live in the database now. Open the events manager to create, publish, and spotlight events.</p>
             </section>
             <div className="mt-5 grid gap-5 lg:grid-cols-3">
               <Breakdown title="Player regions" rows={summarize(profiles, 'region', 'player')} />
@@ -285,42 +198,11 @@ export function AdminDashboard() {
         )}
 
         {tab === 'events' && (
-          <div className="mt-7 grid items-start gap-6 lg:grid-cols-[.85fr_1.15fr]">
-            <form onSubmit={submitEvent} className="rounded-xl border border-foreground/10 bg-card p-5">
-              <h2 className="text-xl font-black uppercase">{editingEventId ? 'Edit event' : 'Create event'}</h2>
-              <div className="mt-5 grid gap-4">
-                <TextField label="Event title" value={eventDraft.title} onChange={title => setEventDraft(draft => ({ ...draft, title }))} />
-                <label className="block text-xs font-bold uppercase tracking-wider">Description<textarea required value={eventDraft.description} onChange={event => setEventDraft(draft => ({ ...draft, description: event.target.value }))} rows={3} className="mt-2 w-full rounded-md border border-foreground/15 bg-background px-3 py-2.5 text-sm font-normal normal-case tracking-normal outline-none focus:border-[#1e5128]" /></label>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <TextField label="Category" value={eventDraft.category} onChange={category => setEventDraft(draft => ({ ...draft, category }))} />
-                  <TextField label="Date" type="date" value={eventDraft.date} onChange={date => setEventDraft(draft => ({ ...draft, date }))} />
-                  <TextField label="Time" type="time" value={eventDraft.time} onChange={time => setEventDraft(draft => ({ ...draft, time }))} />
-                  <TextField label="Location" value={eventDraft.location} onChange={location => setEventDraft(draft => ({ ...draft, location }))} />
-                </div>
-                <div className="flex gap-2">
-                  <button className="inline-flex items-center gap-2 rounded-md bg-[#1e5128] px-4 py-2.5 font-bold text-white"><Plus size={17} />{editingEventId ? 'Save changes' : 'Add event'}</button>
-                  {editingEventId && <button type="button" onClick={() => { setEditingEventId(''); setEventDraft(initialEvent) }} className="rounded-md border border-foreground/15 px-4 py-2.5 font-bold">Cancel</button>}
-                </div>
-              </div>
-            </form>
-            <section className="space-y-3">
-              <h2 className="text-xl font-black uppercase">Calendar · {events.length}</h2>
-              {events.map(event => (
-                <article key={event.id} className="rounded-xl border border-foreground/10 bg-card p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div><div className="flex flex-wrap items-center gap-2"><span className="text-xs font-bold uppercase tracking-wider text-[#E67E22]">{event.category}</span>{event.spotlight && <span className="rounded-full bg-[#F4D03F]/30 px-2 py-1 text-[10px] font-black uppercase">Spotlight</span>}</div><h3 className="mt-2 text-xl font-black uppercase">{event.title}</h3></div>
-                    <div className="flex gap-2">
-                      <button onClick={() => editEvent(event)} className="rounded-md border border-foreground/15 px-3 py-1.5 text-sm font-bold">Edit</button>
-                      <button onClick={() => removeEvent(event.id)} aria-label={`Delete ${event.title}`} className="rounded-md border border-red-500/30 p-2 text-red-600"><Trash2 size={16} /></button>
-                    </div>
-                  </div>
-                  <p className="mt-2 text-sm text-foreground/60">{event.description}</p>
-                  <p className="mt-3 text-sm font-semibold">{formatDate(event.date)} · {event.time} · {event.location}</p>
-                  <button onClick={() => setSpotlight(event.id)} disabled={event.spotlight} className="mt-4 rounded-md bg-[#1e5128]/10 px-3 py-2 text-xs font-bold text-[#1e5128] disabled:opacity-50 dark:text-[#F4D03F]">Set as homepage spotlight</button>
-                </article>
-              ))}
-              {!events.length && <p className="rounded-xl border border-dashed border-foreground/20 p-6 text-sm text-foreground/60">No events yet. Add one to populate the public events page.</p>}
-            </section>
+          <div className="mt-7 rounded-xl border border-foreground/10 bg-card p-6">
+            <p className="eyebrow">Events moved</p>
+            <h2 className="mt-2 text-2xl font-black uppercase">Event management is now server-backed.</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-foreground/60">Events are stored in the database instead of this browser. Create, publish, spotlight, and delete events from the events manager; published changes appear on the public calendar immediately.</p>
+            <Link href="/admin/events" className="mt-5 inline-flex rounded-md bg-[#1e5128] px-5 py-3 font-bold text-white">Open events manager</Link>
           </div>
         )}
 
@@ -395,7 +277,7 @@ export function AdminDashboard() {
         )}
 
         <footer className="mt-10 flex items-center gap-2 border-t border-foreground/10 pt-5 text-xs text-foreground/45">
-          <Users size={14} /> {profiles.length} profile{profiles.length === 1 ? '' : 's'} · {events.length} event{events.length === 1 ? '' : 's'} · local browser demo
+          <Users size={14} /> {profiles.length} profile{profiles.length === 1 ? '' : 's'} · local browser demo
         </footer>
         </div>
         </div>
