@@ -28,8 +28,9 @@ function isCurrent(record: ProfileMediaRecord): boolean {
 }
 
 /**
- * Whether the owner is an under-18 athlete. Unknown status is treated as minor
- * so a photo is stored privately rather than exposed by default.
+ * Whether the owner is an under-18 athlete. Unknown or malformed status is
+ * treated as minor so a photo is stored privately rather than exposed by
+ * default.
  */
 export async function ownerIsMinor(
     supabase: SupabaseClient,
@@ -42,8 +43,12 @@ export async function ownerIsMinor(
         .select('date_of_birth')
         .eq('user_id', userId)
         .maybeSingle()
-    if (error || !data?.date_of_birth) return true
-    return isUnder18(data.date_of_birth as string)
+    const dateOfBirth = data?.date_of_birth
+    if (error || typeof dateOfBirth !== 'string') return true
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) return true
+    const parsed = new Date(`${dateOfBirth}T00:00:00.000Z`)
+    if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== dateOfBirth) return true
+    return isUnder18(dateOfBirth)
 }
 
 /** Resolves current media rows to deliverable URLs (signed URLs when private). */

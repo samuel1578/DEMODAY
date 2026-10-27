@@ -12,15 +12,16 @@ import {
     requiresSignedUrlsFor,
     type ImageContentType,
 } from '@/lib/media'
-import type { MediaActionState, MediaType } from '@/lib/supabase/contracts'
+import type { MediaActionState, MediaType, MediaVisibility } from '@/lib/supabase/contracts'
 import { ownerIsMinor } from '@/lib/supabase/media-data'
 import { createClient } from '@/lib/supabase/server'
 
 /**
  * Owner media mutations. The browser uploads bytes straight to R2, so
  * these actions verify the resulting image before any metadata is stored:
- * authorization stays in RLS (owner-scoped reads/updates plus limited column
- * grants), and the guarded `admin_set_media_status` RPC owns review state.
+ * saves go through the owner-scoped save_owner_media RPC (one transaction,
+ * owner forced to auth.uid()), retire stays in RLS with limited column
+ * grants, and the guarded admin_set_media_status RPC owns review state.
  */
 
 const uuidPattern = /^[0-9a-f-]{36}$/i
@@ -49,9 +50,26 @@ function revalidateMediaSurfaces() {
     for (const path of successPaths) revalidatePath(path)
 }
 
+interface SaveOwnerMediaResult {
+    media_id: string | null
+    retired_object_key: string | null
+    retired_visibility: MediaVisibility | null
+}
+
+/** Best-effort removal of an object this request created or retired. */
+async function discardObject(objectKey: string, visibility: MediaVisibility): Promise<void> {
+    try {
+        await deleteImage(objectKey, visibility)
+    } catch {
+        // Best effort: the object is unreferenced and never delivered.
+    }
+}
+
 /**
  * Persists uploaded media. Saving again for the same media type replaces the
- * current image: the previous row is retired and its R2 object removed.
+ * current image. The retire and insert run in one database transaction
+ * (save_owner_media RPC), so a failed insert never retires the previous
+ * photo, and failed uploads never leave a registered record behind.
  */
 export async function saveMediaAction(input: {
     mediaType: string
@@ -86,62 +104,42 @@ export async function saveMediaAction(input: {
     try {
         details = await getImageDetails(input.imageId, visibility)
     } catch {
+        await discardObject(input.imageId, visibility)
         return failure('The uploaded image could not be verified. Try uploading it again.')
     }
     if (details.contentType !== input.contentType || details.byteSize !== input.byteSize) {
+        await discardObject(input.imageId, visibility)
         return failure('The uploaded image did not match its signed type and size. Try uploading it again.')
     }
 
-    const { data: existing, error: existingError } = await supabase
-        .from('profile_media')
-        .select('id,cloudflare_image_id,visibility')
-        .eq('owner_user_id', userId)
-        .eq('media_type', mediaType)
-        .eq('is_current', true)
-        .is('deleted_at', null)
-        .maybeSingle()
-    if (existingError) return failure('The current image could not be read. Try again.')
-
-    if (existing) {
-        const { error: retireError } = await supabase
-            .from('profile_media')
-            .update({ is_current: false, deleted_at: new Date().toISOString() })
-            .eq('id', existing.id)
-            .eq('owner_user_id', userId)
-        if (retireError) return failure('The previous image could not be retired. Try again.')
+    const { data, error: saveError } = await supabase.rpc('save_owner_media', {
+        p_media_type: mediaType,
+        p_object_key: input.imageId,
+        p_visibility: visibility,
+        p_requires_signed_urls: requiresSignedUrls,
+        p_content_type: input.contentType,
+        p_byte_size: input.byteSize,
+    })
+    if (saveError) {
+        await discardObject(input.imageId, visibility)
+        return failure('The image record could not be saved. Your previous photo is unchanged; try uploading again.')
     }
 
-    const { data: inserted, error: insertError } = await supabase
-        .from('profile_media')
-        .insert({
-            owner_user_id: userId,
-            media_type: mediaType,
-            cloudflare_image_id: input.imageId,
-            visibility,
-            requires_signed_urls: requiresSignedUrls,
-            content_type: input.contentType,
-            byte_size: input.byteSize,
-            is_current: true,
-        })
-        .select('id')
-        .single()
-    if (insertError || !inserted) {
-        return failure('The image record could not be saved. The previous image was retired; upload again to restore one.')
+    const saved = data as SaveOwnerMediaResult | null
+    if (!saved?.media_id) {
+        await discardObject(input.imageId, visibility)
+        return failure('The image record could not be saved. Your previous photo is unchanged; try uploading again.')
     }
 
-    if (existing && typeof existing.cloudflare_image_id === 'string') {
-        try {
-            await deleteImage(existing.cloudflare_image_id, existing.visibility as 'public' | 'private')
-        } catch {
-            // Best effort: the replaced asset is already unreferenced in the app.
-        }
+    if (saved.retired_object_key && saved.retired_visibility) {
+        await discardObject(saved.retired_object_key, saved.retired_visibility)
     }
 
     revalidateMediaSurfaces()
     return {
         status: 'success',
         message: `${mediaTypeLabels[mediaType]} saved.`,
-        mediaId: inserted.id as string,
+        mediaId: saved.media_id,
         deliveryUrl: await resolveDeliveryUrl(input.imageId, visibility),
     }
 }

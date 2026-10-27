@@ -116,6 +116,8 @@ export function PhotoUploadField({ mediaType, label, hint, required, disabledRea
             setMediaId(null)
             setImageUrl(null)
             setNotice('Image removed.')
+        } catch {
+            setError('The image could not be removed. Try again.')
         } finally {
             setBusy(false)
         }

@@ -23,7 +23,7 @@ export default async function AccountPendingPage() {
     return (
         <SiteShell current="/account/pending">
             <main className="mx-auto max-w-4xl px-5 py-16 lg:px-8 lg:py-20">
-                <section className="rounded-xl border border-foreground/10 bg-card p-8 sm:p-12">
+                <section className="account-status-panel rounded-xl border border-foreground/10 bg-card p-8 sm:p-12">
                     <Clock3 className="size-10 text-[#1e5128]" aria-hidden="true" />
                     <p className="eyebrow mt-5">Account status</p>
                     <h1 className="display-title mt-4">Your account is not ready for a dashboard yet.</h1>

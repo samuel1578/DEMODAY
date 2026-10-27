@@ -25,7 +25,62 @@ https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com
 
 ## Configure bucket CORS
 
-Add a CORS policy to both buckets that allows your app's exact origin(s), the `PUT` method, and the `Content-Type` request header. For local development, include the local app origin you use (for example `http://localhost:3000`); for production, list only the deployed app origin. Do not use wildcard origins in production.
+Add a CORS policy to **both** buckets. This is required: the app issues a presigned `PUT`, but the browser call to that URL is cross-origin (your app on one origin, `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` on another). R2 answers the preflight `OPTIONS` from the bucket's CORS policy. If the policy is missing or does not list your origin, the preflight response has no `Access-Control-Allow-Origin` header and the browser blocks the `PUT` with:
+
+```text
+Access to fetch at 'https://…r2.cloudflarestorage.com/…' from origin 'https://…'
+has been blocked by CORS policy: Response to preflight request doesn't pass
+access control check: No 'Access-Control-Allow-Origin' header is present
+```
+
+A 200 from `POST /api/media/upload-url` only proves the presigned URL was minted; it says nothing about the bucket's CORS policy.
+
+In the Cloudflare dashboard: **R2 → select the bucket → Settings → CORS Policy → Add CORS policy → JSON tab**, paste the policy, then **Save**. Repeat for the other bucket. Paste this (it matches exactly what the app's upload does):
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "https://demodayy.vercel.app",
+      "http://localhost:3000"
+    ],
+    "AllowedMethods": ["PUT", "GET", "HEAD"],
+    "AllowedHeaders": ["Content-Type", "Content-Length", "x-amz-*"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+- `AllowedOrigins`: your app's exact origin(s), no path. List the deployed origin (for example `https://demodayy.vercel.app`) and the local origin you develop on (for example `http://localhost:3000`). Do not use wildcard `*` origins in production.
+- `AllowedMethods`: `PUT` is the upload. The presigned URL signs the `content-length`, `content-type`, and `host` headers, so `Content-Type` and `Content-Length` must be allowed; `x-amz-*` covers SDK checksum/metadata headers if they are sent. `GET`/`HEAD` are included so JavaScript could read private delivery objects if ever needed — plain `<img>` tags do not require them.
+- `ExposeHeaders`: optional; lets browser JavaScript read `ETag` after an upload.
+- Wait up to ~30 seconds for the policy to propagate, then retry the upload.
+
+Equivalent Wrangler CLI (note: the CLI file format differs from the dashboard's JSON tab — it wraps rules in `{"rules": [...]}` with lowercase `allowed`):
+
+```json
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": ["https://demodayy.vercel.app", "http://localhost:3000"],
+        "methods": ["PUT", "GET", "HEAD"],
+        "headers": ["Content-Type", "Content-Length", "x-amz-*"],
+        "expose_headers": ["ETag"],
+        "max_age_seconds": 3600
+      }
+    }
+  ]
+}
+```
+
+```sh
+npx wrangler r2 bucket cors set <BUCKET_NAME> --file cors.json
+npx wrangler r2 bucket cors list <BUCKET_NAME>
+```
+
+No application code change is needed; CORS here is enforced and answered entirely by R2 bucket configuration.
 
 ## Environment
 
