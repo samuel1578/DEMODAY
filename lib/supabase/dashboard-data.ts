@@ -25,6 +25,7 @@ import type {
     ScoutVettingRecord,
 } from './contracts'
 import { createDemoDayDataContract } from './data-contract'
+import { profilePhotoUrl, resolveOwnerMedia } from './media-data'
 import { getAccountOnboardingProgress } from './onboarding-state'
 import { isUnder18 } from './onboarding-validation'
 
@@ -38,6 +39,7 @@ export interface PlayerDashboardData {
     email: string | null
     accountStatus: string
     displayName: string
+    photoUrl: string | null
     profile: PlayerProfileRecord | null
     privateDetails: PlayerPrivateDetails | null
     isMinor: boolean
@@ -51,6 +53,7 @@ export interface ScoutDashboardData {
     email: string | null
     accountStatus: string
     displayName: string
+    photoUrl: string | null
     profile: ScoutProfileRecord | null
     interests: ScoutInterestRecord[]
     consentStates: ConsentState[]
@@ -72,6 +75,7 @@ export interface GuardianDashboardData {
     email: string | null
     accountStatus: string
     displayName: string
+    photoUrl: string | null
     profile: GuardianProfileRecord | null
     reviewApproved: boolean
     approvedLinks: GuardianLinkedAthlete[]
@@ -92,10 +96,11 @@ function selfConsentRecords(records: ConsentRecord[], userId: string): ConsentRe
 export async function loadPlayerDashboard(user?: User): Promise<PlayerDashboardData> {
     const authUser = user ?? await requireAuthenticatedUser()
     const contract = await createDemoDayDataContract()
-    const [account, player, consentHistory, progress] = await Promise.all([
+    const [account, player, consentHistory, media, progress] = await Promise.all([
         contract.getAccountProfile(),
         contract.getPlayerProfile(),
         contract.getMyConsentHistory(),
+        contract.getMyMedia(),
         getAccountOnboardingProgress(authUser),
     ])
 
@@ -108,6 +113,7 @@ export async function loadPlayerDashboard(user?: User): Promise<PlayerDashboardD
         email: authUser.email ?? null,
         accountStatus: account?.status ?? progress.accountStatus ?? 'pending',
         displayName: accountDisplayName(account?.first_name, account?.last_name, 'Athlete'),
+        photoUrl: profilePhotoUrl(await resolveOwnerMedia(media)),
         profile,
         privateDetails,
         isMinor,
@@ -121,11 +127,12 @@ export async function loadPlayerDashboard(user?: User): Promise<PlayerDashboardD
 export async function loadScoutDashboard(user?: User): Promise<ScoutDashboardData> {
     const authUser = user ?? await requireAuthenticatedUser()
     const contract = await createDemoDayDataContract()
-    const [account, profile, interests, consentHistory, discoverablePlayers, progress] = await Promise.all([
+    const [account, profile, interests, consentHistory, media, discoverablePlayers, progress] = await Promise.all([
         contract.getAccountProfile(),
         contract.getScoutProfile(),
         contract.getScoutInterests(),
         contract.getMyConsentHistory(),
+        contract.getMyMedia(),
         contract.getScoutDiscoverablePlayers(),
         getAccountOnboardingProgress(authUser),
     ])
@@ -136,6 +143,7 @@ export async function loadScoutDashboard(user?: User): Promise<ScoutDashboardDat
         email: authUser.email ?? null,
         accountStatus: account?.status ?? progress.accountStatus ?? 'pending',
         displayName: accountDisplayName(account?.first_name, account?.last_name, 'Scout'),
+        photoUrl: profilePhotoUrl(await resolveOwnerMedia(media)),
         profile,
         interests,
         consentStates,
@@ -148,10 +156,11 @@ export async function loadScoutDashboard(user?: User): Promise<ScoutDashboardDat
 export async function loadGuardianDashboard(user?: User): Promise<GuardianDashboardData> {
     const authUser = user ?? await requireAuthenticatedUser()
     const contract = await createDemoDayDataContract()
-    const [account, profile, links, progress] = await Promise.all([
+    const [account, profile, links, media, progress] = await Promise.all([
         contract.getAccountProfile(),
         contract.getGuardianProfile(),
         contract.getGuardianPlayerLinks(),
+        contract.getMyMedia(),
         getAccountOnboardingProgress(authUser),
     ])
 
@@ -191,6 +200,7 @@ export async function loadGuardianDashboard(user?: User): Promise<GuardianDashbo
         email: authUser.email ?? null,
         accountStatus: account?.status ?? progress.accountStatus ?? 'pending',
         displayName: accountDisplayName(account?.first_name, account?.last_name, 'Guardian'),
+        photoUrl: profilePhotoUrl(await resolveOwnerMedia(media)),
         profile,
         reviewApproved,
         approvedLinks: linked.filter(item => item.link.status === 'approved'),

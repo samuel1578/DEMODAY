@@ -13,13 +13,14 @@ This directory contains timestamped SQL migrations under `supabase/migrations/`.
 - `APP_URL` — optional canonical origin for future email-link/OAuth callbacks. Direct email/password signup does not use it. If used, set it to the HTTPS production origin or `http://localhost:<port>` for local development; do not derive it from the request Host header.
 - The Sprint 5 signup flow does not use a service-role key; do not add one for user registration or profile provisioning.
 
-### Cloudflare Images
+### Cloudflare R2
 
-- `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account identifier.
-- `CLOUDFLARE_IMAGES_API_TOKEN` — server-only token with only the Images permissions required by the eventual upload/delete workflow.
-- `CLOUDFLARE_IMAGES_VARIANT` and `CLOUDFLARE_IMAGES_PRIVATE_VARIANT` — variant names configured in the Cloudflare Images dashboard.
+- `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, and `R2_SECRET_ACCESS_KEY` — server-only S3-compatible R2 credentials. Scope the token to the public and private media buckets.
+- `R2_BUCKET_NAME` — public-only media bucket.
+- `R2_PRIVATE_BUCKET_NAME` — private bucket for under-18 athlete media and scout identity documents. Do not enable public access or attach a public domain.
+- `R2_PUBLIC_CUSTOM_DOMAIN` — optional HTTPS origin for public delivery; this may be the bucket's `r2.dev` URL for a demo or a custom domain for production.
 
-Cloudflare upload and delivery code is not implemented in this phase; these variable names document the provider configuration only. Do not enable media uploads or expose the Cloudflare token until that workflow is implemented and tested.
+See [`CLOUDFLARE-R2-SETUP.md`](../CLOUDFLARE-R2-SETUP.md) for bucket setup and CORS details. Never expose the R2 access key or secret in a client bundle.
 
 ## Creating migrations
 
@@ -44,7 +45,7 @@ This workflow targets one production Supabase project; a separate staging projec
 
 ## Current access boundary
 
-The foundation migration creates `profiles` with RLS enabled and no policies; Sprint 3 adds role-specific profiles, append-only self-consent, published-event reads, and narrowly scoped self-access. The Sprint 4 migrations add active-admin policies and guarded status RPCs, approved guardian-player links and delegated consent, private athlete details, opt-in scout discovery through an allowlisted view, event administration, and append-only audit logging. Direct profile lifecycle and scout-vetting status updates remain unavailable; administrators must use the RPCs, which require an active admin profile. Guardian access to private athlete details and delegated consent requires an approved link; pending requests expire after 30 days, while approved links remain active until revoked. Scout discovery requires active scout vetting, an approved/active player profile, and the player's latest `profile_discovery` consent to be granted. DOB, district, school, gender, jersey number, height, and weight are stored separately from scout-readable profile rows. Review the SQL before deployment; do not disable RLS or add permissive policies to make the prototype appear functional. The project owner reports applying Sprint 3/4 SQL through the Supabase Dashboard. A reported single `is_empty` result for assertion 40 does not establish that the entire 40-assertion Sprint 4 pgTAP suite passed; preserve that as an outstanding verification item. The project owner reports applying the Sprint 5 profile trigger SQL through the Dashboard; its live behavior has not been independently verified. The signup/sign-in UI and database-gated dashboards are implemented. Sprint 6 onboarding is implemented locally, but its SQL and remote behavior remain unverified; Cloudflare media workflows remain out of scope. Phase 4 replaces the browser-only role dashboards with server-backed reads and adds administrator review actions; it needs no new SQL and no new environment values.
+The foundation migration creates `profiles` with RLS enabled and no policies; Sprint 3 adds role-specific profiles, append-only self-consent, published-event reads, and narrowly scoped self-access. The Sprint 4 migrations add active-admin policies and guarded status RPCs, approved guardian-player links and delegated consent, private athlete details, opt-in scout discovery through an allowlisted view, event administration, and append-only audit logging. Direct profile lifecycle and scout-vetting status updates remain unavailable; administrators must use the RPCs, which require an active admin profile. Guardian access to private athlete details and delegated consent requires an approved link; pending requests expire after 30 days, while approved links remain active until revoked. Scout discovery requires active scout vetting, an approved/active player profile, and the player's latest `profile_discovery` consent to be granted. DOB, district, school, gender, jersey number, height, and weight are stored separately from scout-readable profile rows. Review the SQL before deployment; do not disable RLS or add permissive policies to make the prototype appear functional. The project owner reports applying Sprint 3/4 SQL through the Supabase Dashboard. A reported single `is_empty` result for assertion 40 does not establish that the entire 40-assertion Sprint 4 pgTAP suite passed; preserve that as an outstanding verification item. The project owner reports applying the Sprint 5 profile trigger SQL through the Dashboard; its live behavior has not been independently verified. The signup/sign-in UI and database-gated dashboards are implemented. Sprint 6 onboarding is implemented locally, but its SQL and remote behavior remain unverified. Phase 4 replaces the browser-only role dashboards with server-backed reads and adds administrator review actions; it needs no new SQL and no new environment values. Phase 5 adds the `profile_media` metadata table, owner-scoped R2 media access, guarded media review, and presigned private delivery.
 
 ## Sprint 5 authentication and route pattern
 
@@ -83,3 +84,16 @@ Phase 4 converts the role dashboards from browser-only demo state to server-back
 - Each route segment adds `loading.tsx` and `error.tsx` for the empty, pending, loading, and error states. These dashboards are read-only apart from the guarded RPCs, so no new grants are required.
 
 Validation was local only: `pnpm exec tsc --noEmit --incremental false`, `pnpm test:dashboard`, `pnpm test:onboarding`, and `pnpm build` (which reports `/player`, `/scout`, `/guardian`, and `/admin/reviews` as server-rendered on demand). No authenticated cross-role run against PostgreSQL was performed in the workspace.
+
+## Phase 5 media metadata and private delivery
+
+`supabase/migrations/20261027120000_sprint9_10_profile_media.sql` is local-only and unapplied. Review it, take a backup, and apply it through Dashboard → SQL Editor after the Sprint 3/4/5/6 SQL is confirmed present. It creates the media enums and `public.profile_media`, which stores **only** R2 object keys and delivery metadata; image bytes never enter Postgres. The legacy `cloudflare_image_id` column name remains for compatibility.
+
+- RLS is enabled. Owners can read their own media, register their own media as `pending`, and retire it (`is_current`, `deleted_at`) at any time so a photo can always be withdrawn. Column-scoped grants keep image ID, visibility, signed-URL requirement, and review state outside owner writes.
+- Active administrators can read all media and change review state only through the guarded `admin_set_media_status` RPC. Direct `status` updates are not granted.
+- The schema enforces the delivery boundary: `visibility = 'public' or requires_signed_urls`, and `identity_document` media must be `private`. Private media is uploaded with `requireSignedURLs = true` and is only ever delivered through an HMAC-signed URL, so a public endpoint cannot leak it.
+- Limits are enforced in SQL and in the server code: 10 MB maximum and JPEG/PNG/WebP only.
+- Uploads go from the browser straight to Cloudflare using a single-use URL issued by the authenticated `POST /api/media/upload-url` route, so the API token never reaches the client and the app server never holds the bytes.
+- The base64/browser storage photo path has been removed. Enabling uploads requires the Cloudflare values documented in [`CLOUDFLARE-IMAGES-SETUP.md`](../CLOUDFLARE-IMAGES-SETUP.md); until they are set, photo fields show a configuration notice and the route answers `503`.
+
+Validation was local only: `pnpm exec tsc --noEmit --incremental false`, `pnpm test:media`, `pnpm test:dashboard`, `pnpm test:onboarding`, and `pnpm build`. No live R2 upload, verification, signing, or deletion was performed, and the migration is not applied.

@@ -81,6 +81,7 @@ export function ScoutDashboard({ data }: { data: ScoutDashboardData }) {
                     eyebrow="Scout dashboard"
                     title="Find the signal in the noise."
                     intro="Your discovery view only ever shows opted-in athletes whose profile and account review are approved. Private details and full surnames stay out of this workspace."
+                    avatarUrl={data.photoUrl}
                     secondary={(
                         <a href="/events" className="flex items-center gap-2 rounded-md bg-[#F4D03F] px-5 py-3 font-bold text-[#172219]">
                             View events <CalendarDays className="size-4" aria-hidden="true" />

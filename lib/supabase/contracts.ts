@@ -12,6 +12,9 @@ export type ConsentType =
 export type ConsentDecision = 'granted' | 'withdrawn'
 export type GuardianLinkStatus = 'pending' | 'approved' | 'rejected' | 'revoked' | 'expired'
 export type EventStatus = 'draft' | 'published' | 'cancelled' | 'completed'
+export type MediaType = 'profile_photo' | 'action_photo' | 'identity_document'
+export type MediaVisibility = 'public' | 'private'
+export type MediaStatus = 'pending' | 'approved' | 'rejected'
 
 export interface AccountProfile {
     user_id: string
@@ -192,6 +195,33 @@ export interface AuditLogEntry {
     created_at: string
 }
 
+/** Media metadata only: image bytes live in R2, never in Postgres. */
+export interface ProfileMediaRecord {
+    id: string
+    owner_user_id: string
+    media_type: MediaType
+    cloudflare_image_id: string
+    visibility: MediaVisibility
+    requires_signed_urls: boolean
+    status: MediaStatus
+    content_type: string
+    byte_size: number
+    is_current: boolean
+    approved_by: string | null
+    approved_at: string | null
+    deleted_at: string | null
+    created_at: string
+    updated_at: string
+}
+
+/** Result shape returned to the media upload client component. */
+export interface MediaActionState {
+    status: 'idle' | 'error' | 'success'
+    message?: string
+    mediaId?: string
+    deliveryUrl?: string | null
+}
+
 /** Shared result shape for the server-backed admin review actions. */
 export type AdminReviewActionState = {
     status: 'idle' | 'error' | 'success'
@@ -206,6 +236,7 @@ export interface DemoDayServerDataContract {
     getLinkedAthleteConsentHistory(playerUserId: string): Promise<ConsentRecord[]>
     getScoutProfile(): Promise<ScoutProfileRecord | null>
     getScoutInterests(): Promise<ScoutInterestRecord[]>
+    getMyMedia(): Promise<ProfileMediaRecord[]>
     getGuardianProfile(): Promise<GuardianProfileRecord | null>
     getGuardianPlayerLinks(): Promise<GuardianPlayerLink[]>
     getMyConsentHistory(): Promise<ConsentRecord[]>

@@ -58,6 +58,7 @@ export function PlayerDashboard({ data }: { data: PlayerDashboardData }) {
                     eyebrow="Athlete dashboard"
                     title="Your pathway, in motion."
                     intro="This view is built from your saved athlete profile, private details and consent history. Only you can read it."
+                    avatarUrl={data.photoUrl}
                     secondary={(
                         <a href="/events" className="flex items-center gap-2 rounded-md bg-[#F4D03F] px-5 py-3 font-bold text-[#172219]">
                             View events <CalendarDays className="size-4" aria-hidden="true" />

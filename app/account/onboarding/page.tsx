@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
 import { ServerOnboardingForm, type OnboardingRole } from '@/components/onboarding/server-onboarding-form'
 import { SiteShell } from '@/components/site-shell'
+import { getR2Status } from '@/lib/cloudflare/images'
+import type { MediaType } from '@/lib/supabase/contracts'
+import { loadMyCurrentMediaByType } from '@/lib/supabase/media-data'
 import { createClient } from '@/lib/supabase/server'
 
 const inviteTokenPattern = /^[A-Za-z0-9_-]{43}$/
@@ -121,6 +124,15 @@ export default async function AccountOnboardingPage({
         })
     }
 
+    const currentMedia = await loadMyCurrentMediaByType()
+    const mediaByType: Partial<Record<MediaType, { mediaId: string; deliveryUrl: string | null }>> = {}
+    for (const [mediaType, item] of Object.entries(currentMedia)) {
+        if (item) mediaByType[mediaType as MediaType] = { mediaId: item.id, deliveryUrl: item.deliveryUrl }
+    }
+    const mediaDisabledReason = getR2Status().configured
+        ? null
+        : 'Photo uploads are not configured on this deployment yet. An administrator must set the R2 environment values before photos can be added.'
+
     return (
         <SiteShell current="/account/pending">
             <main className="mx-auto max-w-5xl px-5 py-12 lg:px-8 lg:py-16">
@@ -130,7 +142,13 @@ export default async function AccountOnboardingPage({
                     Your saved account role controls this form. Onboarding stores role-specific profile details and append-only consent records; it never changes account review or scout vetting status.
                 </p>
                 <div className="mt-9">
-                    <ServerOnboardingForm role={role} initialValues={initialValues} inviteToken={inviteToken} />
+                    <ServerOnboardingForm
+                        role={role}
+                        initialValues={initialValues}
+                        inviteToken={inviteToken}
+                        media={mediaByType}
+                        mediaDisabledReason={mediaDisabledReason}
+                    />
                 </div>
             </main>
         </SiteShell>

@@ -41,18 +41,29 @@ export function DashboardHeader({
     title,
     intro,
     secondary,
+    avatarUrl,
+    avatarNote,
 }: {
     eyebrow: string
     title: string
     intro: string
     secondary?: ReactNode
+    /** Resolved server-side: a signed URL for private media. */
+    avatarUrl?: string | null
+    avatarNote?: string
 }) {
     return (
         <div className="flex flex-col justify-between gap-6 border-b border-foreground/10 pb-10 md:flex-row md:items-end">
-            <div>
-                <p className="eyebrow">{eyebrow}</p>
-                <h1 className="display-title mt-4 max-w-3xl">{title}</h1>
-                <p className="mt-5 max-w-2xl text-lg leading-8 text-foreground/60">{intro}</p>
+            <div className="flex items-start gap-5">
+                {avatarUrl ? (
+                    <img src={avatarUrl} alt="" className="size-16 shrink-0 rounded-full border-2 border-[#F4D03F] object-cover" />
+                ) : null}
+                <div>
+                    <p className="eyebrow">{eyebrow}</p>
+                    <h1 className="display-title mt-4 max-w-3xl">{title}</h1>
+                    <p className="mt-5 max-w-2xl text-lg leading-8 text-foreground/60">{intro}</p>
+                    {avatarUrl && avatarNote ? <p className="mt-3 text-xs text-foreground/45">{avatarNote}</p> : null}
+                </div>
             </div>
             {secondary ? <div className="flex flex-wrap gap-3">{secondary}</div> : null}
         </div>

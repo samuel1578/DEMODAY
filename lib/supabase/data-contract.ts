@@ -16,6 +16,7 @@ import type {
     GuardianLinkStatus,
     PlayerPrivateDetails,
     PlayerProfileRecord,
+    ProfileMediaRecord,
     PublishedEvent,
     ProfileStatus,
     ScoutDiscoverablePlayer,
@@ -167,6 +168,16 @@ export async function createDemoDayDataContract(): Promise<DemoDayServerDataCont
                 .order('consent_revision', { ascending: false })
             failOnError(error, 'Load consent history')
             return (data ?? []) as ConsentRecord[]
+        },
+
+        async getMyMedia() {
+            const { data, error } = await supabase
+                .from('profile_media')
+                .select('id,owner_user_id,media_type,cloudflare_image_id,visibility,requires_signed_urls,status,content_type,byte_size,is_current,approved_by,approved_at,deleted_at,created_at,updated_at')
+                .eq('owner_user_id', user.id)
+                .order('created_at', { ascending: false })
+            failOnError(error, 'Load media records')
+            return (data ?? []) as ProfileMediaRecord[]
         },
 
         async getScoutDiscoverablePlayers() {

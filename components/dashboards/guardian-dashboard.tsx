@@ -96,6 +96,7 @@ export function GuardianDashboard({ data }: { data: GuardianDashboardData }) {
                     eyebrow="Guardian dashboard"
                     title="Stay close to every milestone."
                     intro="This view shows the athletes you are linked to, their safeguarding details, and the consent decisions recorded in their name."
+                    avatarUrl={data.photoUrl}
                     secondary={(
                         <a href="/events" className="flex items-center gap-2 rounded-md bg-[#F4D03F] px-5 py-3 font-bold text-[#172219]">
                             View events <CalendarDays className="size-4" aria-hidden="true" />

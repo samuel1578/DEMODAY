@@ -311,27 +311,3 @@ export function clearProfile(role: RoleId): void {
     /* ignore */
   }
 }
-
-export function fileToDataUrl(file: File, maxSize = 640): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onerror = () => reject(new Error('Could not read that file.'))
-    reader.onload = () => {
-      const source = String(reader.result)
-      const image = new Image()
-      image.onerror = () => reject(new Error('Could not load that image.'))
-      image.onload = () => {
-        const scale = Math.min(1, maxSize / Math.max(image.width, image.height))
-        const canvas = document.createElement('canvas')
-        canvas.width = Math.max(1, Math.round(image.width * scale))
-        canvas.height = Math.max(1, Math.round(image.height * scale))
-        const context = canvas.getContext('2d')
-        if (!context) return resolve(source)
-        context.drawImage(image, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/jpeg', 0.82))
-      }
-      image.src = source
-    }
-    reader.readAsDataURL(file)
-  })
-}

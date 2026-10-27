@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { useActionState, useState, type ReactNode } from 'react'
 import { ArrowRight, Check, Copy, ShieldCheck } from 'lucide-react'
 import { submitOnboardingAction } from '@/app/actions/onboarding'
+import { PhotoUploadField } from '@/components/onboarding/photo-upload-field'
+import type { MediaType } from '@/lib/supabase/contracts'
 import { isUnder18, type OnboardingActionState } from '@/lib/supabase/onboarding-validation'
 
 export type OnboardingRole = 'player' | 'guardian' | 'scout'
@@ -13,6 +15,10 @@ interface ServerOnboardingFormProps {
     role: OnboardingRole
     initialValues?: FormValues
     inviteToken?: string
+    /** Current R2 media for this owner, resolved server-side. */
+    media?: Partial<Record<MediaType, { mediaId: string; deliveryUrl: string | null }>>
+    /** Set when the deployment has no R2 credentials yet. */
+    mediaDisabledReason?: string | null
 }
 
 const regions = [
@@ -49,7 +55,13 @@ const initialActionState: OnboardingActionState = { status: 'idle' }
 const controlClass = 'mt-2 w-full rounded-md border border-foreground/15 bg-background px-4 py-3 text-sm outline-none transition focus:border-[#F4D03F]'
 const labelClass = 'block text-xs font-bold uppercase tracking-wider'
 
-export function ServerOnboardingForm({ role, initialValues = {}, inviteToken }: ServerOnboardingFormProps) {
+export function ServerOnboardingForm({
+    role,
+    initialValues = {},
+    inviteToken,
+    media = {},
+    mediaDisabledReason = null,
+}: ServerOnboardingFormProps) {
     const [state, formAction, pending] = useActionState(submitOnboardingAction, initialActionState)
     const [values, setValues] = useState<FormValues>({
         ...initialValues,
@@ -171,6 +183,20 @@ export function ServerOnboardingForm({ role, initialValues = {}, inviteToken }: 
         )
     }
 
+    function photo(mediaType: MediaType, label: string, hint: string, required = false) {
+        return (
+            <PhotoUploadField
+                key={mediaType}
+                mediaType={mediaType}
+                label={label}
+                hint={hint}
+                required={required}
+                disabledReason={mediaDisabledReason}
+                initial={media[mediaType] ?? null}
+            />
+        )
+    }
+
     if (state.status === 'success') {
         return (
             <section className="rounded-xl border border-[#F4D03F]/40 bg-card p-7 sm:p-10" aria-live="polite">
@@ -230,6 +256,10 @@ export function ServerOnboardingForm({ role, initialValues = {}, inviteToken }: 
                         {input('highlightUrl', 'Highlight video URL', 'url')}
                         {textarea('achievements', 'Key achievements')}
                     </Section>
+                    <Section title="Profile photo" description="Photos are stored in R2 and referenced by object key. An under-18 athlete’s photo is stored in a private bucket and served through a short-lived signed URL.">
+                        {photo('profile_photo', 'Profile photo', 'Face clearly visible, plain background where possible.')}
+                        {photo('action_photo', 'Action photo (optional)', 'One clear action shot from a match or session.')}
+                    </Section>
                     {minor ? (
                         <div className="mt-8 rounded-md border border-[#E67E22]/40 bg-[#E67E22]/10 p-5 text-sm leading-6 text-foreground/75">
                             <b className="block text-foreground">Under-18 safeguarding gate</b>
@@ -281,6 +311,12 @@ export function ServerOnboardingForm({ role, initialValues = {}, inviteToken }: 
                         ], true)}
                         {multi('regions', 'Regions you cover', regions.map(value => ({ value, label: value })))}
                     </Section>
+                    <Section title="Profile photo" description="Your photo is referenced by ID and never stored in the database.">
+                        {photo('profile_photo', 'Profile photo', 'A face attached to a name keeps the network accountable.')}
+                    </Section>
+                    <Section title="Vetting document" description="Your government ID is used only for independent safeguarding vetting. It is stored as private media and is never published or shared with athletes.">
+                        {photo('identity_document', 'Government ID photo', 'Passport or national ID. Private media: delivery requires a signed URL.')}
+                    </Section>
                     <Section title="Safeguarding consents" description="These decisions are saved to the immutable consent history with this account as the actor and subject.">
                         {consent('consentScoutCode', 'Scout Code of Conduct', 'I accept the Demo Day Scout Code of Conduct: no unsupervised one-to-one contact with minors outside sanctioned sessions, no gifts or financial offers outside documented processes, and immediate disclosure of conflicts of interest.')}
                         {consent('consentBackgroundCheck', 'Background check consent', 'I consent to safeguarding background checks and to my referee being contacted.')}
@@ -304,6 +340,9 @@ export function ServerOnboardingForm({ role, initialValues = {}, inviteToken }: 
                         {input('emergencyContactName', 'Emergency contact name', 'text', true)}
                         {input('emergencyContactPhone', 'Emergency contact phone', 'tel', true)}
                         {textarea('medicalNotes', 'Medical or allergy notes (optional)')}
+                    </Section>
+                    <Section title="Profile photo" description="Your photo is referenced by ID and never stored in the database.">
+                        {photo('profile_photo', 'Profile photo', 'Guardian identity confirmation is part of the safeguarding record.')}
                     </Section>
                     <Section title="Link to a player" description="A guardian invitation only creates a pending request. The player approves the link and your account review remains independent.">
                         {inviteToken ? (
