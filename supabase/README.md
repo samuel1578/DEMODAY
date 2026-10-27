@@ -70,7 +70,7 @@ The active onboarding route is `/account/onboarding`. It reads the saved `profil
 
 ### Applying the Sprint 6 SQL
 
-`supabase/migrations/20261026100000_sprint6_server_backed_onboarding.sql` is intentionally local-only and has not been applied. The project owner should review the target schema and the complete SQL, take a database backup, then apply it through Supabase Dashboard → SQL Editor after confirming the Sprint 3/4 prerequisites and Sprint 5 profile trigger are present. Do not run Docker, `db push`, or CLI migrations for this sprint. Dashboard SQL execution does not reconcile Supabase CLI migration history. After application, verify the RPC signatures, grants, RLS behavior, consent history, guardian invite expiry/one-time claim, and status gates in a non-production account before relying on live onboarding.
+`supabase/migrations/20261026100000_sprint6_server_backed_onboarding.sql` was applied only partially by hand in the Dashboard: the `guardian_invites` table, `get_my_guardian_link_requests()`, and `player_guardian_approval_complete()` exist live, but `submit_player_onboarding`, `submit_scout_onboarding`, `submit_guardian_onboarding`, and `claim_guardian_invite` were never created, so every onboarding submission failed with PostgREST `PGRST202` (function not found). The missing objects are restored verbatim by `supabase/migrations/20261027150000_sprint6_backfill_onboarding_functions.sql`, which the project owner must apply through Supabase Dashboard → SQL Editor. Do not run Docker, `db push`, or CLI migrations for this sprint. Dashboard SQL execution does not reconcile Supabase CLI migration history. After application, verify the RPC signatures, grants, RLS behavior, consent history, guardian invite expiry/one-time claim, and status gates in a non-production account before relying on live onboarding.
 
 ## Phase 4 role dashboards and admin review
 
@@ -87,7 +87,7 @@ Validation was local only: `pnpm exec tsc --noEmit --incremental false`, `pnpm t
 
 ## Phase 5 media metadata and private delivery
 
-`supabase/migrations/20261027120000_sprint9_10_profile_media.sql` is local-only and unapplied. Review it, take a backup, and apply it through Dashboard → SQL Editor after the Sprint 3/4/5/6 SQL is confirmed present. It creates the media enums and `public.profile_media`, which stores **only** R2 object keys and delivery metadata; image bytes never enter Postgres. The legacy `cloudflare_image_id` column name remains for compatibility.
+`supabase/migrations/20261027120000_sprint9_10_profile_media.sql` is applied to the live database (verified: the tables, constraints, and the `save_owner_media` RPC respond as written). It creates the media enums and `public.profile_media`, which stores **only** R2 object keys and delivery metadata; image bytes never enter Postgres. The legacy `cloudflare_image_id` column name remains for compatibility.
 
 - RLS is enabled. Owners can read their own media, register their own media as `pending`, and retire it (`is_current`, `deleted_at`) at any time so a photo can always be withdrawn. Column-scoped grants keep image ID, visibility, signed-URL requirement, and review state outside owner writes.
 - Active administrators can read all media and change review state only through the guarded `admin_set_media_status` RPC. Direct `status` updates are not granted.
@@ -96,4 +96,4 @@ Validation was local only: `pnpm exec tsc --noEmit --incremental false`, `pnpm t
 - Uploads go from the browser straight to Cloudflare using a single-use URL issued by the authenticated `POST /api/media/upload-url` route, so the API token never reaches the client and the app server never holds the bytes.
 - The base64/browser storage photo path has been removed. Enabling uploads requires the Cloudflare values documented in [`CLOUDFLARE-IMAGES-SETUP.md`](../CLOUDFLARE-IMAGES-SETUP.md); until they are set, photo fields show a configuration notice and the route answers `503`.
 
-Validation was local only: `pnpm exec tsc --noEmit --incremental false`, `pnpm test:media`, `pnpm test:dashboard`, `pnpm test:onboarding`, and `pnpm build`. No live R2 upload, verification, signing, or deletion was performed, and the migration is not applied.
+Validation: `pnpm exec tsc --noEmit --incremental false`, `pnpm test:media`, `pnpm test:dashboard`, `pnpm test:onboarding`, and `pnpm build`, plus a live end-to-end run against the applied database and R2 buckets: browser-shaped upload to R2, `save_owner_media` save/replace, private-bucket 403 without a signature, signed GET success, retire, and object delete. The owner-scoped RPC rejects cross-user writes, malformed object keys, and role-inappropriate media types as designed.

@@ -36,6 +36,10 @@ function failed(message: string, fieldErrors?: Record<string, string>): Onboardi
     return { status: 'error', message, fieldErrors }
 }
 
+function logRpcFailure(rpc: string, error: { code?: string; message?: string }): void {
+    console.error(`[onboarding] ${rpc} failed`, { code: error.code, message: error.message })
+}
+
 export async function submitOnboardingAction(
     _previousState: OnboardingActionState,
     formData: FormData,
@@ -85,7 +89,10 @@ export async function submitOnboardingAction(
             p_guardian_invite_hash: guardianInviteHash,
         })
 
-        if (error) return failed('The player profile could not be saved. Check the fields and try again.')
+        if (error) {
+            logRpcFailure('submit_player_onboarding', error)
+            return failed('The player profile could not be saved. Check the fields and try again.')
+        }
         revalidatePath('/account/pending')
         revalidatePath('/account/guardian-approval')
         return {
@@ -119,7 +126,10 @@ export async function submitOnboardingAction(
             p_consent_no_contact_policy: true,
         })
 
-        if (error) return failed('The scout application could not be saved. Check the fields and try again.')
+        if (error) {
+            logRpcFailure('submit_scout_onboarding', error)
+            return failed('The scout application could not be saved. Check the fields and try again.')
+        }
         revalidatePath('/account/pending')
         return { status: 'success', message: 'Your scout application and safeguarding consents were saved for independent review.' }
     }
@@ -139,6 +149,7 @@ export async function submitOnboardingAction(
     })
 
     if (error) {
+        logRpcFailure('submit_guardian_onboarding', error)
         const inviteError = guardian.inviteToken
             ? { inviteToken: 'This invitation is invalid, expired, or already used. Ask the player to generate a new link.' }
             : undefined
@@ -179,7 +190,10 @@ export async function claimGuardianInviteAction(
     const { error } = await supabase.rpc('claim_guardian_invite', {
         p_invite_token_hash: hashInviteToken(tokenValue),
     })
-    if (error) return failed('This guardian invitation is invalid, expired, or already used.')
+    if (error) {
+        logRpcFailure('claim_guardian_invite', error)
+        return failed('This guardian invitation is invalid, expired, or already used.')
+    }
 
     revalidatePath('/account/pending')
     revalidatePath('/account/guardian-approval')
@@ -266,7 +280,10 @@ export async function recordGuardianConsentsAction(
     })
 
     const { error } = await supabase.from('consent_records').insert(rows)
-    if (error) return failed('The consent history could not be saved. Confirm the approved link and try again.')
+    if (error) {
+        logRpcFailure('consent_records.insert', error)
+        return failed('The consent history could not be saved. Confirm the approved link and try again.')
+    }
 
     revalidatePath('/account/pending')
     revalidatePath('/account/guardian-approval')

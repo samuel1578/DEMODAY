@@ -31,6 +31,15 @@ function failure(message: string): MediaActionState {
     return { status: 'error', message }
 }
 
+function logMediaFailure(scope: string, error: unknown): void {
+    const candidate = error as { code?: string; name?: string; message?: string } | null | undefined
+    console.error(`[media] ${scope} failed`, {
+        code: candidate?.code ?? null,
+        name: candidate?.name ?? null,
+        message: candidate?.message ?? 'unknown error',
+    })
+}
+
 async function getOwnerContext(): Promise<{ supabase: SupabaseClient; userId: string; role: string } | null> {
     const supabase = await createClient()
     const { data: authData, error: authError } = await supabase.auth.getUser()
@@ -60,7 +69,8 @@ interface SaveOwnerMediaResult {
 async function discardObject(objectKey: string, visibility: MediaVisibility): Promise<void> {
     try {
         await deleteImage(objectKey, visibility)
-    } catch {
+    } catch (error) {
+        logMediaFailure('discardObject', error)
         // Best effort: the object is unreferenced and never delivered.
     }
 }
@@ -103,7 +113,8 @@ export async function saveMediaAction(input: {
     let details
     try {
         details = await getImageDetails(input.imageId, visibility)
-    } catch {
+    } catch (error) {
+        logMediaFailure('getImageDetails', error)
         await discardObject(input.imageId, visibility)
         return failure('The uploaded image could not be verified. Try uploading it again.')
     }
@@ -121,6 +132,7 @@ export async function saveMediaAction(input: {
         p_byte_size: input.byteSize,
     })
     if (saveError) {
+        logMediaFailure('save_owner_media', saveError)
         await discardObject(input.imageId, visibility)
         return failure('The image record could not be saved. Your previous photo is unchanged; try uploading again.')
     }
@@ -165,12 +177,16 @@ export async function deleteMediaAction(input: { mediaId: string }): Promise<Med
             .update({ is_current: false, deleted_at: new Date().toISOString() })
             .eq('id', row.id)
             .eq('owner_user_id', userId)
-        if (retireError) return failure('The image record could not be retired. Try again.')
+        if (retireError) {
+            logMediaFailure('retire_media', retireError)
+            return failure('The image record could not be retired. Try again.')
+        }
     }
 
     try {
         await deleteImage(row.cloudflare_image_id as string, row.visibility as 'public' | 'private')
-    } catch {
+    } catch (error) {
+        logMediaFailure('deleteImage', error)
         // Best effort: the row is retired even if the provider delete fails.
     }
 
