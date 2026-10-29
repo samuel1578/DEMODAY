@@ -28,7 +28,7 @@ export function SignUpForm() {
                     <legend className="mb-2 text-xs font-bold uppercase tracking-wider">Account type</legend>
                     <div className="grid gap-2 sm:grid-cols-3">
                         {publicSignupRoles.map(role => (
-                            <label key={role} className="cursor-pointer rounded-lg border border-foreground/10 p-3 has-[:checked]:border-[#F4D03F] has-[:checked]:bg-[#1e5128] has-[:checked]:text-white">
+                            <label key={role} className="sign-up-role-option cursor-pointer rounded-lg border border-foreground/10 p-3 has-[:checked]:border-[#F4D03F] has-[:checked]:bg-[#1e5128] has-[:checked]:text-white">
                                 <input className="sr-only" type="radio" name="role" value={role} defaultChecked={role === 'player'} required />
                                 <span className="block font-bold uppercase tracking-wide">{roleDetails[role].label}</span>
                                 <span className="mt-1 block text-xs opacity-70">{roleDetails[role].description}</span>
