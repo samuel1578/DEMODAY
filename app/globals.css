@@ -578,6 +578,18 @@ main[data-theme='light'] .admin-dashboard {
   color: #172219;
 }
 
+main[data-theme='light'] .onboarding-flow {
+  color-scheme: light;
+  --background: #f6f6ef;
+  --foreground: #172219;
+  --card: #fff;
+  --card-foreground: #172219;
+  --muted-foreground: rgb(23 34 25 / 0.68);
+  --border: rgb(23 34 25 / 0.14);
+  --input: rgb(23 34 25 / 0.18);
+  color: #172219;
+}
+
 main[data-theme='light'] .admin-dashboard .eyebrow {
   color: #1e5128;
 }
@@ -610,7 +622,7 @@ main[data-theme='light'] .sign-up-role-card {
   color: #172219;
 }
 
-main[data-theme='light'] .sign-up-role-card > div > span {
+main[data-theme='light'] .sign-up-role-card>div>span {
   color: rgb(23 34 25 / 0.68);
 }
 
@@ -628,8 +640,8 @@ main[data-theme='light'] .sign-up-benefits p {
   color: rgb(23 34 25 / 0.68);
 }
 
-main[data-theme='light'] .sign-in-intro > p:not(.eyebrow),
-main[data-theme='light'] .sign-in-intro > div {
+main[data-theme='light'] .sign-in-intro>p:not(.eyebrow),
+main[data-theme='light'] .sign-in-intro>div {
   color: rgb(23 34 25 / 0.72);
 }
 
@@ -780,6 +792,7 @@ main[data-theme='light'] .sign-in-card input {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .hero-network-glow,
   .hero-logo-animated .hero-logo-glow,
   .hero-logo-animated .hero-logo-ring {

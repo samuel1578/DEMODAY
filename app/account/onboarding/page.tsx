@@ -135,7 +135,7 @@ export default async function AccountOnboardingPage({
 
     return (
         <SiteShell current="/account/pending">
-            <main className="mx-auto max-w-5xl px-5 py-12 lg:px-8 lg:py-16">
+            <main className="onboarding-flow mx-auto max-w-5xl px-5 py-12 lg:px-8 lg:py-16">
                 <p className="eyebrow">Account setup · {role}</p>
                 <h1 className="display-title mt-4">Complete your {role} profile.</h1>
                 <p className="mt-5 max-w-3xl text-base leading-7 text-foreground/60">
