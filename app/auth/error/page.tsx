@@ -1,5 +1,11 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { SiteShell } from '@/components/site-shell'
+
+export const metadata: Metadata = {
+    title: 'Authentication Error',
+    robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+}
 
 export default function AuthErrorPage() {
     return (

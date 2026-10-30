@@ -1,5 +1,11 @@
+import type { Metadata } from 'next'
 import { SignUpForm } from '@/components/auth/sign-up-form'
 import { SiteShell } from '@/components/site-shell'
+
+export const metadata: Metadata = {
+  title: 'Create an Account',
+  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+}
 
 export default function SignUpPage() {
   return (
@@ -11,9 +17,7 @@ export default function SignUpPage() {
           <p className="mt-6 max-w-lg text-lg leading-8 text-foreground/65">
             Start with a secure account. Complete your role-specific profile after sign-up; account review and scout vetting are checked separately before dashboard access.
           </p>
-          <p className="mt-8 max-w-lg text-sm leading-6 text-foreground/50">
-            With email confirmation disabled in Supabase, sign-up starts an authenticated session and sends you to account status. Athlete, guardian, and scout profile details are submitted separately from your login credentials.
-          </p>
+
         </section>
         <SignUpForm />
       </main>

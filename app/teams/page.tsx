@@ -1,7 +1,15 @@
+import Link from 'next/link'
 import { ArrowRight, BarChart3, Eye, Layers3, Radar } from 'lucide-react'
 import { MotionMedia, Reveal, SignalCard } from '@/components/reveal'
 import { SiteShell } from '@/components/site-shell'
 import { signalIcon, teamIcon, teamsHeroImage, timeIcon } from '@/data/site'
+import { createSeoMetadata } from '@/lib/seo'
+
+export const metadata = createSeoMetadata({
+  title: 'Sports Talent Discovery for Teams and Scouts',
+  description: 'Discover sports talent in Ghana through Demo Day: structured athlete evaluations, verified scouts, and performance evidence for teams.',
+  path: '/teams',
+})
 
 export default function Teams() {
   return (
@@ -9,9 +17,9 @@ export default function Teams() {
       <section className="overflow-hidden bg-[#1e5128] px-5 py-16 lg:px-8 lg:py-24">
         <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-2 lg:gap-12">
           <Reveal className="relative z-10">
-            <p className="eyebrow text-[#F4D03F]">For teams & scouts</p>
-            <h1 className="mt-6 text-6xl font-black uppercase leading-[.88] tracking-[-.07em] sm:text-8xl">Find the player behind the <span className="text-[#F4D03F]">headline.</span></h1>
-            <p className="mt-7 max-w-lg text-lg leading-8 text-white/70">A sharper way to widen your funnel, improve your signal, and meet talent before everyone else does.</p>
+            <p className="eyebrow text-[#F4D03F]">For teams & scouts in Ghana</p>
+            <h1 className="mt-6 text-6xl font-black uppercase leading-[.88] tracking-[-.07em] sm:text-8xl">Sports talent discovery for teams and scouts in <span className="text-[#F4D03F]">Ghana.</span></h1>
+            <p className="mt-7 max-w-lg text-lg leading-8 text-white/70">Demo Day helps teams and verified scouts widen their search through structured evaluations, athlete profiles, and documented performance evidence.</p>
           </Reveal>
           <Reveal delay={.12} className="relative -mx-5 -mt-4 h-[min(88vw,390px)] sm:h-[440px] lg:mx-0 lg:mt-0 lg:h-[540px]">
             <MotionMedia
@@ -40,7 +48,7 @@ export default function Teams() {
       </section>
       <section className="mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-2 lg:px-8">
         <Reveal><p className="eyebrow">The invitation</p><h2 className="section-title">Scout with more conviction.</h2><p className="mt-5 leading-7 text-muted-foreground">Demo Day gives ambitious teams a credible new route to the players who are not yet on every list.</p></Reveal>
-        <Reveal delay={.1} className="rounded-xl bg-[#e9c46a] p-8 text-[#172219]"><Eye /><h3 className="mt-8 text-3xl font-black uppercase">See the full picture.</h3><p className="mt-3 leading-7">Join the next evaluation cycle and open your club to a deeper pool of possibility.</p><a href="/how-it-works" className="mt-7 inline-flex items-center gap-2 font-bold">Explore the pathway <ArrowRight /></a></Reveal>
+        <Reveal delay={.1} className="rounded-xl bg-[#e9c46a] p-8 text-[#172219]"><Eye /><h3 className="mt-8 text-3xl font-black uppercase">See the full picture.</h3><p className="mt-3 leading-7">Join the next evaluation cycle and open your club to a deeper pool of possibility.</p><Link href="/scouts" className="mt-7 inline-flex items-center gap-2 font-bold">Learn about Demo Day scouting <ArrowRight /></Link></Reveal>
       </section>
     </SiteShell>
   )

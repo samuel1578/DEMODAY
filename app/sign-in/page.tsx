@@ -1,6 +1,12 @@
+import type { Metadata } from 'next'
 import { ShieldCheck } from 'lucide-react'
 import { SignInForm } from '@/components/auth/sign-in-form'
 import { SiteShell } from '@/components/site-shell'
+
+export const metadata: Metadata = {
+  title: 'Sign In',
+  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+}
 
 export default function SignInPage() {
   return (

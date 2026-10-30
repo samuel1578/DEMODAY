@@ -6,6 +6,13 @@ import { MobileFairPlayCarousel } from '@/components/mobile-fair-play-carousel'
 import { MotionMedia, Reveal, SignalCard, Ticker } from '@/components/reveal'
 import { SiteShell } from '@/components/site-shell'
 import { humanIcon, logo, pexelsImages, proofIcon, sportsIcon, upgradeIcon } from '@/data/site'
+import { createSeoMetadata } from '@/lib/seo'
+
+export const metadata = createSeoMetadata({
+  title: 'Sports Talent Discovery & Scouting',
+  description: 'Demo Day is a sports talent discovery platform in Ghana connecting athletes with teams and verified scouts through structured evaluations and events.',
+  path: '/',
+})
 
 export const revalidate = 300
 
@@ -13,6 +20,18 @@ export default function Home() {
   return (
     <SiteShell current="/">
       <HomeScrollytellingHero />
+      <section className="mx-auto grid max-w-7xl gap-6 px-5 py-14 lg:grid-cols-[1fr_auto] lg:items-end lg:px-8">
+        <div>
+          <p className="eyebrow">Sports talent discovery in Ghana</p>
+          <h2 className="section-title mt-4 max-w-3xl">A structured pathway for athletes, teams, and scouts.</h2>
+          <p className="mt-5 max-w-3xl leading-7 text-muted-foreground">
+            Demo Day uses athlete profiles and organized evaluation events to help teams and verified scouts discover sports talent in Ghana. Football is the lead sport, basketball is a parallel pilot, and an American football pilot is planned for a later phase.
+          </p>
+        </div>
+        <Link href="/scouts" className="inline-flex items-center gap-2 font-bold text-[#1e5128] underline underline-offset-4">
+          Learn about scouting with Demo Day <ArrowRight aria-hidden="true" />
+        </Link>
+      </section>
       <HomeSpotlightEvent />
       <Ticker />
       <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
@@ -44,7 +63,7 @@ export default function Home() {
           <p className="eyebrow">Built for the whole ecosystem</p>
           <h2 className="section-title">The field is bigger than the pitch.</h2>
           <p className="mt-5 max-w-lg leading-7 text-muted-foreground">Athletes, teams, coaches, and safeguarding leads move through one accountable experience. Less noise. More signal. Better outcomes.</p>
-          <Link href="/safeguarding" className="mt-7 inline-flex items-center gap-2 font-bold text-[#F4D03F]">See our standards <ShieldCheck /></Link>
+          <Link href="/safeguarding" className="mt-7 inline-flex items-center gap-2 font-bold text-[#F4D03F]">Read our athlete safeguarding standards <ShieldCheck /></Link>
         </Reveal>
         <Reveal delay={.1} className="grid grid-cols-[.9fr_1.1fr] items-center gap-3 sm:gap-5">
           <div className="overflow-hidden rounded-xl">
@@ -59,7 +78,7 @@ export default function Home() {
         <img src={upgradeIcon} alt="" aria-hidden="true" className="absolute left-5 top-5 size-20 rounded-full bg-[#F4D03F] p-3 object-contain md:left-12 md:top-1/2 md:size-36 md:-translate-y-1/2 md:p-5 lg:left-[10%] lg:size-44" />
         <img src={logo} alt="Demo Day sports logo" className="mx-auto mb-5 size-20 rounded-full object-cover md:size-10" />
         <h2 className="mx-auto max-w-3xl text-4xl font-black uppercase tracking-tight sm:text-6xl">Your next level starts with a fair shot.</h2>
-        <Link href="/how-it-works" className="mt-8 inline-flex items-center gap-2 rounded-md bg-[#F4D03F] px-6 py-3.5 font-bold text-[#172219]">Learn how it works <ArrowRight /></Link>
+        <Link href="/how-it-works" className="mt-8 inline-flex items-center gap-2 rounded-md bg-[#F4D03F] px-6 py-3.5 font-bold text-[#172219]">See how the Demo Day athlete pathway works <ArrowRight /></Link>
       </section>
     </SiteShell>
   )

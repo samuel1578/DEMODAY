@@ -76,6 +76,32 @@ export async function loadPublishedEvents(): Promise<EventListItem[]> {
     return mapRows((data ?? []) as EventRow[])
 }
 
+/** Published event IDs for the sitemap without resolving event image URLs. */
+export async function loadPublishedEventIds(): Promise<string[]> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('events')
+        .select('id')
+        .eq('status', 'published')
+        .order('starts_at', { ascending: true })
+    if (error) throw new Error(`Could not load event IDs: ${error.message}`)
+    return (data ?? []).map(event => event.id)
+}
+
+/** A single public event for its detail route; unpublished events stay hidden. */
+export async function loadPublishedEventById(id: string): Promise<EventListItem | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('events')
+        .select(eventColumns)
+        .eq('id', id)
+        .eq('status', 'published')
+        .maybeSingle()
+    if (error) throw new Error(`Could not load event: ${error.message}`)
+    if (!data) return null
+    return (await mapRows([data as EventRow]))[0] ?? null
+}
+
 /** The single published spotlight event for the homepage, if one is set. */
 export async function loadSpotlightEvent(): Promise<EventListItem | null> {
     const supabase = await createClient()

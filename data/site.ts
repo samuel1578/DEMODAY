@@ -12,6 +12,7 @@ export const siteNav = [
   { href: '/how-it-works', label: 'How it works' },
   { href: '/safeguarding', label: 'Safeguarding' },
   { href: '/teams', label: 'For teams' },
+  { href: '/scouts', label: 'For scouts' },
   { href: '/events', label: 'Events' },
 ]
 

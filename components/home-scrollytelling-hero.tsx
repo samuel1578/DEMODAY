@@ -8,8 +8,8 @@ import { useEffect, useRef, useState } from 'react'
 const scenes = [
   {
     label: 'Open the field',
-    title: <>Talent has no <span className="text-[#F4D03F]">backdoor.</span></>,
-    description: 'A fair shot starts with an open door. Every athlete can step into the pathway without needing the right introduction.',
+    title: <>Sports talent <span className="text-[#F4D03F]">in Ghana</span> deserves a fair look.</>,
+    description: 'Demo Day is a sports talent discovery platform in Ghana. Athletes build evidence-based profiles and take part in structured evaluations so teams and verified scouts can discover talent beyond personal connections.',
   },
   {
     label: 'Proof over proximity',
@@ -45,8 +45,8 @@ function NetworkVisual() {
         className="relative z-10 w-[68%] drop-shadow-[0_0_45px_rgba(244,208,63,0.22)]"
       />
       <div className="absolute bottom-[8%] left-0 rounded-md border border-white/10 bg-[#101612]/85 px-4 py-3 backdrop-blur max-md:hidden">
-        <span className="block text-[10px] uppercase tracking-[0.2em] text-white/45">Live talent network</span>
-        <b className="mt-1 block text-sm text-[#F4D03F]">04,280 athletes</b>
+        <span className="block text-[10px] uppercase tracking-[0.2em] text-white/45">Sports talent discovery</span>
+        <b className="mt-1 block text-sm text-[#F4D03F]">Across Ghana</b>
       </div>
       <div className="absolute right-0 top-[13%] rounded-md border border-white/10 bg-[#101612]/85 px-4 py-3 backdrop-blur max-md:hidden">
         <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/75">
@@ -186,9 +186,15 @@ export function HomeScrollytellingHero() {
                     <span className="mr-3 font-mono text-white/35">0{index + 1} / 03</span>
                     {scene.label}
                   </p>
-                  <h1 className="mt-6 max-w-3xl text-5xl font-black uppercase leading-[.9] tracking-[-0.065em] sm:text-7xl lg:text-[clamp(4.5rem,7vw,7.5rem)]">
-                    {scene.title}
-                  </h1>
+                  {index === 0 ? (
+                    <h1 className="mt-6 max-w-3xl text-5xl font-black uppercase leading-[.9] tracking-[-0.065em] sm:text-7xl lg:text-[clamp(4.5rem,7vw,7.5rem)]">
+                      {scene.title}
+                    </h1>
+                  ) : (
+                    <h2 className="mt-6 max-w-3xl text-5xl font-black uppercase leading-[.9] tracking-[-0.065em] sm:text-7xl lg:text-[clamp(4.5rem,7vw,7.5rem)]">
+                      {scene.title}
+                    </h2>
+                  )}
                   <p className="mt-6 max-w-xl text-base leading-7 text-white/65 sm:text-lg sm:leading-8">
                     {scene.description}
                   </p>
@@ -197,8 +203,8 @@ export function HomeScrollytellingHero() {
                       <Link href="/sign-up" className="group flex items-center justify-center gap-3 rounded-md bg-[#F4D03F] px-6 py-3.5 font-bold text-[#172219]">
                         Enter the pathway <ArrowRight className="transition group-hover:translate-x-1" />
                       </Link>
-                      <Link href="/teams" className="flex items-center justify-center gap-3 rounded-md border border-white/25 px-6 py-3.5 font-bold">
-                        Scout portal <ArrowRight />
+                      <Link href="/scouts" className="flex items-center justify-center gap-3 rounded-md border border-white/25 px-6 py-3.5 font-bold">
+                        For sports scouts <ArrowRight />
                       </Link>
                     </div>
                   )}

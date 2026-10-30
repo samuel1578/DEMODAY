@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { CalendarDays, MapPin } from 'lucide-react'
 import type { EventListItem } from '@/lib/supabase/events-data'
 
@@ -48,7 +49,11 @@ export function EventsList({ events }: { events: EventListItem[] }) {
                                 <span className="text-xs font-bold uppercase tracking-[.2em] text-[#E67E22]">{event.category}</span>
                                 {event.isSpotlight && <span className="rounded-full bg-[#F4D03F]/25 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide">Spotlight</span>}
                             </div>
-                            <h2 className="mt-3 max-w-3xl break-words text-2xl font-black uppercase leading-tight sm:text-3xl">{event.title}</h2>
+                            <h2 className="mt-3 max-w-3xl break-words text-2xl font-black uppercase leading-tight sm:text-3xl">
+                                <Link href={`/events/${encodeURIComponent(event.id)}`} className="transition hover:text-[#1e5128] focus-visible:underline">
+                                    {event.title}
+                                </Link>
+                            </h2>
                             {event.description && <p className="mt-4 max-w-2xl text-base leading-7 text-foreground/65">{event.description}</p>}
                             <div className="mt-6 flex flex-col gap-3 border-t border-foreground/10 pt-5 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6">
                                 <p className="flex min-w-0 items-start gap-2 font-semibold">

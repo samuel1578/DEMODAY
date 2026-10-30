@@ -69,7 +69,7 @@ export function SiteShell({ children, current }: { children: React.ReactNode; cu
           <div className={`flex shrink-0 items-center justify-between px-5 py-4 lg:px-8 ${open ? `max-md:border-b ${dark ? 'max-md:border-white/10' : 'max-md:border-[#172219]/10'}` : ''}`}>
             <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-3">
               <img src={logo} alt="Demo Day sports logo" className={`rounded-full object-cover transition-[width,height] duration-300 ${open ? 'size-16 max-[360px]:size-14 md:size-11' : 'size-11'}`} />
-              <span className={`brand-wordmark ${open ? 'mobile-brand-wordmark' : ''}`}>DEMO DAY <small>Talent discovery platform</small></span>
+              <span className={`brand-wordmark ${open ? 'mobile-brand-wordmark' : ''}`}>DEMO DAY <small>Sports talent discovery in Ghana</small></span>
             </Link>
             <button className={`rounded-md border p-2 transition md:hidden ${dark ? 'border-white/15 text-white hover:border-[#F4D03F] hover:text-[#F4D03F]' : 'border-[#172219]/20 text-[#172219] hover:border-[#1e5128] hover:text-[#1e5128]'}`} onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="site-navigation">
               {open ? <X size={22} /> : <Menu size={22} />}
@@ -108,10 +108,10 @@ export function SiteShell({ children, current }: { children: React.ReactNode; cu
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-10 sm:flex-row sm:items-center sm:justify-between lg:px-8">
           <Link href="/" className="flex items-center gap-3">
             <img src={logo} alt="Demo Day sports logo" className="size-12 rounded-full object-cover" />
-            <span className="brand-wordmark">DEMO DAY <small>A fair shot starts here.</small></span>
+            <span className="brand-wordmark">DEMO DAY <small>Sports talent discovery in Ghana</small></span>
           </Link>
           <div className="menu-type flex flex-wrap gap-5 text-sm text-white/60">{siteNav.map(item => <Link key={item.href} href={item.href}>{item.label}</Link>)}</div>
-          <p className="text-xs text-white/35">© 2026 Demo Day. Demo experience.</p>
+          <p className="text-xs text-white/35">© 2026 Demo Day Ghana. Sports talent discovery and scouting.</p>
         </div>
       </footer>
     </main>
