@@ -121,7 +121,7 @@ export function EventsManager({ events, result, publicOrigin }: {
 
     return (
         <SiteShell current="/admin">
-            <main className="mx-auto max-w-6xl px-5 py-10 lg:px-8 lg:py-14">
+            <main className="admin-dashboard mx-auto max-w-6xl px-5 py-10 lg:px-8 lg:py-14">
                 <header className="flex flex-col justify-between gap-5 border-b border-foreground/10 pb-8 md:flex-row md:items-end">
                     <div>
                         <p className="eyebrow">Admin · events</p>

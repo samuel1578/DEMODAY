@@ -175,6 +175,50 @@
   --radius: 0.45rem;
 }
 
+/* Theme tokens follow the app's explicit toggle, not the operating-system
+   preference. Keep component surfaces and text in sync on every route. */
+main[data-theme='light'] {
+  color-scheme: light;
+  --background: #f6f6ef;
+  --foreground: #172219;
+  --card: #fff;
+  --card-foreground: #172219;
+  --popover: #fff;
+  --popover-foreground: #172219;
+  --primary: #1e5128;
+  --primary-foreground: #fff;
+  --secondary: #e9eee8;
+  --secondary-foreground: #172219;
+  --muted: #edf0e9;
+  --muted-foreground: #4b5b50;
+  --accent: #f4d03f;
+  --accent-foreground: #172219;
+  --border: rgb(23 34 25 / 0.14);
+  --input: rgb(23 34 25 / 0.2);
+  --ring: #1e5128;
+}
+
+main[data-theme='dark'] {
+  color-scheme: dark;
+  --background: #101612;
+  --foreground: #f5f7ef;
+  --card: #171d19;
+  --card-foreground: #f5f7ef;
+  --popover: #171d19;
+  --popover-foreground: #f5f7ef;
+  --primary: #f4d03f;
+  --primary-foreground: #172219;
+  --secondary: #252d27;
+  --secondary-foreground: #f5f7ef;
+  --muted: #252d27;
+  --muted-foreground: #c1c9c2;
+  --accent: #f4d03f;
+  --accent-foreground: #172219;
+  --border: rgb(255 255 255 / 0.12);
+  --input: rgb(255 255 255 / 0.18);
+  --ring: #f4d03f;
+}
+
 .display-title {
   font-family: var(--font-display), sans-serif;
   font-size: clamp(4rem, 10vw, 8.5rem);
@@ -568,14 +612,36 @@ main[data-theme='light'] .signal-card-artwork {
 
 main[data-theme='light'] .admin-dashboard {
   color-scheme: light;
-  --background: #fff;
+  --background: #f6f6ef;
   --foreground: #172219;
   --card: #fff;
   --card-foreground: #172219;
-  --muted-foreground: rgb(23 34 25 / 0.62);
+  --muted-foreground: #4b5b50;
   --border: rgb(23 34 25 / 0.14);
-  --input: rgb(23 34 25 / 0.18);
+  --input: rgb(23 34 25 / 0.2);
   color: #172219;
+}
+
+/* Admin utility classes previously inherited dark OS-level tokens in light
+   mode. Normalize muted text and modestly enlarge small labels without adding
+   card padding or changing the grid/box sizing. */
+main[data-theme='light'] .admin-dashboard [class*="text-foreground/"] {
+  color: #4b5b50 !important;
+}
+
+main[data-theme='light'] .admin-dashboard .text-xs {
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+main[data-theme='light'] .admin-dashboard .text-sm {
+  font-size: 0.9375rem;
+  line-height: 1.4rem;
+}
+
+main[data-theme='light'] .admin-dashboard [class~="text-[10px]"] {
+  font-size: 0.75rem;
+  line-height: 1.125rem;
 }
 
 main[data-theme='light'] .onboarding-flow {

@@ -52,7 +52,7 @@ export function AdminDashboard({ data }: { data: AdminOverviewData }) {
 
   return (
     <SiteShell current="/admin">
-      <main className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-14">
+      <main className="admin-dashboard mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-14">
         <DashboardHeader
           eyebrow="Demo Day administration"
           title="Run the network."

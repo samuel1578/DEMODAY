@@ -117,7 +117,7 @@ export function AdminReview({ data, result }: { data: AdminReviewData; result?: 
 
     return (
         <SiteShell current="/admin">
-            <main className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-14">
+            <main className="admin-dashboard mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-14">
                 <DashboardHeader
                     eyebrow="Demo Day CEO dashboard · review"
                     title="Review the network."
