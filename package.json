@@ -13,6 +13,7 @@
     "test:onboarding": "node --test tests/onboarding-validation.test.mjs",
     "test:dashboard": "node --test tests/dashboard.test.mjs",
     "test:admin": "node --test tests/admin-overview.test.mjs",
+    "test:admin-profile-review": "node --test tests/admin-profile-review.test.mjs",
     "test:admin-theme": "node --test tests/admin-theme.test.mjs",
     "test:media": "node --test tests/media.test.mjs",
     "supabase:check": "node scripts/check-supabase-env.mjs"

@@ -1,4 +1,5 @@
-import { CalendarDays, ShieldCheck, Users } from 'lucide-react'
+import { CalendarDays, FileSearch, ShieldCheck, Users } from 'lucide-react'
+import Link from 'next/link'
 import { SiteShell } from '@/components/site-shell'
 import { AdminSectionNavigation } from '@/components/admin/admin-section-nav'
 import {
@@ -83,7 +84,14 @@ function ProfileRow({ profile, vettingStatus }: { profile: AccountProfile; vetti
                     </h3>
                     <p className="mt-1 text-xs text-foreground/50">Joined {formatShortDate(profile.created_at)}</p>
                 </div>
-                <span className="font-mono text-[10px] text-foreground/40">{profile.user_id}</span>
+                <Link
+                    href={`/admin/reviews/${profile.user_id}`}
+                    className="inline-flex items-center gap-2 rounded-md bg-[#F4D03F] px-4 py-2.5 text-sm font-bold text-[#172219] transition hover:bg-[#e7c22e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1e5128]"
+                    aria-label={`View submitted data for ${accountDisplayName(profile.first_name, profile.last_name, 'this account')}`}
+                >
+                    <FileSearch className="size-4" aria-hidden="true" />
+                    View submitted data
+                </Link>
             </div>
 
             <div className="mt-4 flex flex-wrap items-end gap-4">

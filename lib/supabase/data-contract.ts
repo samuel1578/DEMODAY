@@ -4,6 +4,9 @@ import { requireAuthenticatedUser } from './auth'
 import { createClient } from './server'
 import type {
     AccountProfile,
+    AdminGuardianReviewRecord,
+    AdminPlayerReviewRecord,
+    AdminScoutReviewRecord,
     AuditLogEntry,
     ConsentDecision,
     ConsentRecord,
@@ -120,6 +123,59 @@ export async function createDemoDayDataContract(): Promise<DemoDayServerDataCont
             return (data ?? []) as ConsentRecord[]
         },
 
+        async getAdminPlayerReview(userId) {
+            const [profileResult, privateResult] = await Promise.all([
+                supabase
+                    .from('player_profiles')
+                    .select('user_id,sport,region,primary_position,secondary_position,dominant_side,experience_level,years_playing,previous_club,bio,goals,highlight_url,achievements,created_at,updated_at')
+                    .eq('user_id', userId)
+                    .maybeSingle(),
+                supabase
+                    .from('player_private_details')
+                    .select('date_of_birth')
+                    .eq('user_id', userId)
+                    .maybeSingle(),
+            ])
+            failOnError(profileResult.error, 'Load admin athlete profile review')
+            failOnError(privateResult.error, 'Load admin athlete age indicator')
+            if (!profileResult.data) return null
+            return {
+                profile: profileResult.data as PlayerProfileRecord,
+                dateOfBirth: privateResult.data?.date_of_birth ?? null,
+            } satisfies AdminPlayerReviewRecord
+        },
+
+        async getAdminScoutReview(userId) {
+            const { data, error } = await supabase
+                .from('scout_profiles')
+                .select('nationality,region,organisation,scout_role,affiliation_type,years_experience,vetting_status')
+                .eq('user_id', userId)
+                .maybeSingle()
+            failOnError(error, 'Load admin scout profile review')
+            return data as AdminScoutReviewRecord | null
+        },
+
+        async getAdminScoutInterests(userId) {
+            const { data, error } = await supabase
+                .from('scout_interests')
+                .select('user_id,interest_type,interest_value')
+                .eq('user_id', userId)
+                .order('interest_type', { ascending: true })
+                .order('interest_value', { ascending: true })
+            failOnError(error, 'Load admin scout interests')
+            return (data ?? []) as ScoutInterestRecord[]
+        },
+
+        async getAdminGuardianReview(userId) {
+            const { data, error } = await supabase
+                .from('guardian_profiles')
+                .select('relationship,region')
+                .eq('user_id', userId)
+                .maybeSingle()
+            failOnError(error, 'Load admin guardian profile review')
+            return data as AdminGuardianReviewRecord | null
+        },
+
         async getScoutProfile() {
             const { data, error } = await supabase
                 .from('scout_profiles')
@@ -214,6 +270,20 @@ export async function createDemoDayDataContract(): Promise<DemoDayServerDataCont
             }
             const { data, error } = await query
             failOnError(error, 'Load administrator media queue')
+            return (data ?? []) as ProfileMediaRecord[]
+        },
+
+        async getAdminProfileMedia(userId) {
+            const { data, error } = await supabase
+                .from('profile_media')
+                .select('id,owner_user_id,media_type,cloudflare_image_id,visibility,requires_signed_urls,status,content_type,byte_size,is_current,approved_by,approved_at,deleted_at,created_at,updated_at')
+                .eq('owner_user_id', userId)
+                .in('media_type', ['profile_photo', 'action_photo'])
+                .neq('status', 'rejected')
+                .eq('is_current', true)
+                .is('deleted_at', null)
+                .order('created_at', { ascending: false })
+            failOnError(error, 'Load submitted profile images')
             return (data ?? []) as ProfileMediaRecord[]
         },
 

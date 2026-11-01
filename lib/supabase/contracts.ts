@@ -215,6 +215,19 @@ export interface ProfileMediaRecord {
     updated_at: string
 }
 
+/** Narrow server-only projections used to prepare an admin's profile review. */
+export interface AdminPlayerReviewRecord {
+    profile: PlayerProfileRecord
+    dateOfBirth: string | null
+}
+
+export type AdminScoutReviewRecord = Pick<
+    ScoutProfileRecord,
+    'nationality' | 'region' | 'organisation' | 'scout_role' | 'affiliation_type' | 'years_experience' | 'vetting_status'
+>
+
+export type AdminGuardianReviewRecord = Pick<GuardianProfileRecord, 'relationship' | 'region'>
+
 /** Result shape returned to the media upload client component. */
 export interface MediaActionState {
     status: 'idle' | 'error' | 'success'
@@ -235,6 +248,10 @@ export interface DemoDayServerDataContract {
     getLinkedPlayerAccount(playerUserId: string): Promise<AccountProfile | null>
     getLinkedPlayerProfile(playerUserId: string): Promise<PlayerProfileBundle | null>
     getLinkedAthleteConsentHistory(playerUserId: string): Promise<ConsentRecord[]>
+    getAdminPlayerReview(userId: string): Promise<AdminPlayerReviewRecord | null>
+    getAdminScoutReview(userId: string): Promise<AdminScoutReviewRecord | null>
+    getAdminScoutInterests(userId: string): Promise<ScoutInterestRecord[]>
+    getAdminGuardianReview(userId: string): Promise<AdminGuardianReviewRecord | null>
     getScoutProfile(): Promise<ScoutProfileRecord | null>
     getScoutInterests(): Promise<ScoutInterestRecord[]>
     getMyMedia(): Promise<ProfileMediaRecord[]>
@@ -245,6 +262,7 @@ export interface DemoDayServerDataContract {
     getMyConsentHistory(): Promise<ConsentRecord[]>
     getScoutDiscoverablePlayers(): Promise<ScoutDiscoverablePlayer[]>
     getAdminMedia(status?: MediaStatus, limit?: number): Promise<ProfileMediaRecord[]>
+    getAdminProfileMedia(userId: string): Promise<ProfileMediaRecord[]>
     getAdminEvents(): Promise<EventRecord[]>
     createEvent(input: EventMutationInput): Promise<EventRecord>
     updateEvent(eventId: string, input: Partial<EventMutationInput>): Promise<EventRecord>
