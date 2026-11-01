@@ -1,5 +1,6 @@
 import { CalendarDays, ShieldCheck, Users } from 'lucide-react'
 import { SiteShell } from '@/components/site-shell'
+import { AdminSectionNavigation } from '@/components/admin/admin-section-nav'
 import {
     Card,
     DashboardHeader,
@@ -25,6 +26,7 @@ const auditActionLabels: Record<AuditLogEntry['action'], string> = {
     guardian_link_status_changed: 'Guardian link changed',
     consent_recorded: 'Consent recorded',
     event_status_changed: 'Event status changed',
+    media_status_changed: 'Media moderation changed',
 }
 
 const resultMessages: Record<string, { tone: 'positive' | 'attention'; message: string }> = {
@@ -131,6 +133,8 @@ export function AdminReview({ data, result }: { data: AdminReviewData; result?: 
                         </>
                     )}
                 />
+
+                <AdminSectionNavigation current="/admin/reviews" />
 
                 {notice ? (
                     <div className="mt-6">

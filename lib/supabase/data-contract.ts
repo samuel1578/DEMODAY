@@ -160,6 +160,27 @@ export async function createDemoDayDataContract(): Promise<DemoDayServerDataCont
             return (data ?? []) as GuardianPlayerLink[]
         },
 
+        async getProfilesByUserIds(userIds) {
+            if (!userIds.length) return []
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('user_id,role,status,first_name,last_name,created_at,updated_at')
+                .in('user_id', userIds)
+            failOnError(error, 'Load account summaries')
+            return (data ?? []) as AccountProfile[]
+        },
+
+        async getAdminConsentHistory(playerUserIds) {
+            if (!playerUserIds.length) return []
+            const { data, error } = await supabase
+                .from('consent_records')
+                .select('id,actor_user_id,subject_user_id,consent_type,decision,consent_version,recorded_at,consent_revision')
+                .in('subject_user_id', playerUserIds)
+                .order('consent_revision', { ascending: false })
+            failOnError(error, 'Load guardian oversight consent history')
+            return (data ?? []) as ConsentRecord[]
+        },
+
         async getMyConsentHistory() {
             const { data, error } = await supabase
                 .from('consent_records')
@@ -177,6 +198,22 @@ export async function createDemoDayDataContract(): Promise<DemoDayServerDataCont
                 .eq('owner_user_id', user.id)
                 .order('created_at', { ascending: false })
             failOnError(error, 'Load media records')
+            return (data ?? []) as ProfileMediaRecord[]
+        },
+
+        async getAdminMedia(status, limit = 200) {
+            const safeLimit = Number.isInteger(limit) ? Math.min(Math.max(limit, 1), 200) : 200
+            let query = supabase
+                .from('profile_media')
+                .select('id,owner_user_id,media_type,cloudflare_image_id,visibility,requires_signed_urls,status,content_type,byte_size,is_current,approved_by,approved_at,deleted_at,created_at,updated_at')
+                .order('created_at', { ascending: false })
+                .limit(safeLimit)
+            if (status) {
+                query = query.eq('status', status)
+                if (status !== 'rejected') query = query.eq('is_current', true).is('deleted_at', null)
+            }
+            const { data, error } = await query
+            failOnError(error, 'Load administrator media queue')
             return (data ?? []) as ProfileMediaRecord[]
         },
 

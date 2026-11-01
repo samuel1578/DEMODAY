@@ -180,7 +180,7 @@ export interface EventMutationInput {
 
 export interface AuditLogEntry {
     id: string
-    entity_type: 'profile' | 'scout_profile' | 'guardian_player_link' | 'consent_record' | 'event'
+    entity_type: 'profile' | 'scout_profile' | 'guardian_player_link' | 'consent_record' | 'event' | 'profile_media'
     entity_id: string
     action:
     | 'profile_status_changed'
@@ -188,6 +188,7 @@ export interface AuditLogEntry {
     | 'guardian_link_status_changed'
     | 'consent_recorded'
     | 'event_status_changed'
+    | 'media_status_changed'
     actor_user_id: string | null
     old_status: string | null
     new_status: string | null
@@ -239,8 +240,11 @@ export interface DemoDayServerDataContract {
     getMyMedia(): Promise<ProfileMediaRecord[]>
     getGuardianProfile(): Promise<GuardianProfileRecord | null>
     getGuardianPlayerLinks(): Promise<GuardianPlayerLink[]>
+    getProfilesByUserIds(userIds: string[]): Promise<AccountProfile[]>
+    getAdminConsentHistory(playerUserIds: string[]): Promise<ConsentRecord[]>
     getMyConsentHistory(): Promise<ConsentRecord[]>
     getScoutDiscoverablePlayers(): Promise<ScoutDiscoverablePlayer[]>
+    getAdminMedia(status?: MediaStatus, limit?: number): Promise<ProfileMediaRecord[]>
     getAdminEvents(): Promise<EventRecord[]>
     createEvent(input: EventMutationInput): Promise<EventRecord>
     updateEvent(eventId: string, input: Partial<EventMutationInput>): Promise<EventRecord>
