@@ -12,7 +12,7 @@ const siteStructuredData = {
             name: 'Demo Day',
             alternateName: 'Demo Day Ghana',
             url: SITE_ORIGIN,
-            logo: absoluteUrl('/logo.webp'),
+            logo: absoluteUrl('/logo.png'),
             description: SITE_DESCRIPTION,
             areaServed: {
                 '@type': 'Country',

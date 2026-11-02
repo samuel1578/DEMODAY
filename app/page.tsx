@@ -6,11 +6,11 @@ import { MobileFairPlayCarousel } from '@/components/mobile-fair-play-carousel'
 import { MotionMedia, Reveal, SignalCard, Ticker } from '@/components/reveal'
 import { SiteShell } from '@/components/site-shell'
 import { humanIcon, logo, pexelsImages, proofIcon, sportsIcon, upgradeIcon } from '@/data/site'
-import { createSeoMetadata } from '@/lib/seo'
+import { createSeoMetadata, SITE_DESCRIPTION } from '@/lib/seo'
 
 export const metadata = createSeoMetadata({
-  title: 'Sports Talent Discovery & Scouting',
-  description: 'Demo Day is a sports talent discovery platform in Ghana connecting athletes with teams and verified scouts through structured evaluations and events.',
+  title: 'Sports Scouting & Athlete Evaluation',
+  description: SITE_DESCRIPTION,
   path: '/',
 })
 

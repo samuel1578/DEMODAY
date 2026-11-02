@@ -12,25 +12,32 @@ const mono = DM_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
   title: {
-    default: 'Sports Talent Discovery & Scouting',
+    default: 'Demo Day Ghana | Sports Scouting & Athlete Evaluation',
     template: '%s | Demo Day Ghana',
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   openGraph: {
     type: 'website',
+    url: SITE_ORIGIN,
     locale: 'en_GH',
     siteName: SITE_NAME,
-    title: 'Sports Talent Discovery & Scouting | Demo Day Ghana',
+    title: 'Demo Day Ghana | Sports Scouting & Athlete Evaluation',
     description: SITE_DESCRIPTION,
-    images: [{ url: '/logo.webp', alt: 'Demo Day Ghana sports talent discovery platform' }],
+    images: [{
+      url: '/opengraph-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'Demo Day: Sports scouting in Ghana',
+    }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sports Talent Discovery & Scouting | Demo Day Ghana',
+    title: 'Demo Day Ghana | Sports Scouting & Athlete Evaluation',
     description: SITE_DESCRIPTION,
-    images: ['/logo.webp'],
+    images: ['/twitter-image.png'],
   },
+  alternates: { canonical: '/' },
   robots: {
     index: true,
     follow: true,
@@ -43,8 +50,11 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-icon.png',
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
   },
 }
 
